@@ -34,6 +34,34 @@ export default function (eleventyConfig) {
     wert ? new Date(wert).toISOString().slice(0, 10) : ""
   );
 
+  // Checklisten: Listenpunkte, die mit „[ ]“ oder „[x]“ beginnen, werden als
+  // Liste mit Kästchen dargestellt (nur zum Ansehen, nicht anklickbar).
+  eleventyConfig.amendLibrary("md", (md) => {
+    md.core.ruler.after("inline", "checkliste", (state) => {
+      const t = state.tokens;
+      const listen = [];
+      for (let i = 0; i < t.length; i++) {
+        if (t[i].type === "bullet_list_open") listen.push(i);
+        else if (t[i].type === "bullet_list_close") listen.pop();
+        else if (
+          t[i].type === "inline" &&
+          t[i - 1]?.type === "paragraph_open" &&
+          t[i - 2]?.type === "list_item_open" &&
+          listen.length
+        ) {
+          const m = /^\[([ xX])\]\s+/.exec(t[i].content);
+          const erstes = t[i].children?.[0];
+          if (!m || erstes?.type !== "text" || !erstes.content.startsWith(m[0])) continue;
+          erstes.content = erstes.content.slice(m[0].length);
+          t[i].content = t[i].content.slice(m[0].length);
+          t[i - 2].attrJoin("class", m[1] === " " ? "offen" : "erledigt");
+          const liste = t[listen[listen.length - 1]];
+          if (!(liste.attrGet("class") || "").includes("checkliste")) liste.attrJoin("class", "checkliste");
+        }
+      }
+    });
+  });
+
   // Schritt mit Minutenangabe, wie im Entwurf:
   // {% schritt "5 Min.", "Zurückschauen" %}Text in Markdown{% endschritt %}
   eleventyConfig.addPairedShortcode("schritt", function (inhalt, minuten, titel) {
