@@ -53,6 +53,8 @@ Unter dem zweiten `---` kommt der Artikel in einfacher Markdown-Schreibweise:
 | `**fett**` | **fett** |
 | `- Punkt` | Aufzählung |
 | `1. Punkt` | nummerierte Liste |
+| `- [ ] Punkt` | Checkliste mit leerem Kästchen (`- [x]` = abgehakt) |
+| Tabelle mit `\|` | Tabelle; auf dem Handy wird jede Zeile zu einem Block |
 | `[Linktext](https://...)` | Link |
 | Leerzeile | neuer Absatz |
 
