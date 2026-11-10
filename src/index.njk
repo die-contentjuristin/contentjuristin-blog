@@ -1,0 +1,25 @@
+---
+layout: base.njk
+nav: start
+permalink: /
+---
+<section class="wrap">
+  <div class="intro">
+    <span class="label">Der Blog zu {{ site.instagramName }}</span>
+    <h1>Social Media für Selbständige. Strategisch und <em>rechtlich</em> auf der sicheren Seite.</h1>
+    <p>Hier stehen die langen Versionen meiner Posts: mit mehr Beispielen, Checklisten und Quellen zum Nachlesen. Ein neuer Artikel pro Monat.</p>
+  </div>
+  <div class="list">
+    <h2>Neueste Artikel</h2>
+    {%- for a in collections.artikel %}
+    <a class="item" href="{{ a.url }}">
+      <span class="label">{{ a.data.saeule }}</span>
+      <h3>{{ a.data.titel }}</h3>
+      <p>{{ a.data.teaser }}</p>
+      <span class="meta">{{ a.data.lesezeit }} Min. Lesezeit</span>
+    </a>
+    {%- else %}
+    <p class="empty">Bald gibt es hier den ersten Artikel.</p>
+    {%- endfor %}
+  </div>
+</section>
