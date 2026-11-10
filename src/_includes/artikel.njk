@@ -1,0 +1,56 @@
+---
+layout: base.njk
+---
+{%- set istRecht = (saeule == "Recht im Alltag") -%}
+<article class="wrap">
+  <div class="art-head">
+    <span class="label">{{ saeule }}</span>
+    <h1>{{ titel }}</h1>
+    <p class="byline"><time datetime="{{ datum | datumIso }}">{{ datum | datumDeutsch }}</time> · {{ lesezeit }} Min. Lesezeit</p>
+    {% if lead %}<p class="lead">{{ lead }}</p>{% endif %}
+  </div>
+
+  {% if bild %}
+  <figure class="cover">
+    <img src="{{ bild }}" alt="{{ bild_alt }}" width="1600" height="900">
+  </figure>
+  {% endif %}
+
+  <div class="body">
+    {% if istRecht %}
+    <div class="navy-box" role="note">
+      <span class="label">Hinweis</span>
+      <p>Allgemeine Information, keine Rechtsberatung. Stand: {{ stand or "–" }}. Bitte prüf immer den aktuellen Stand.</p>
+    </div>
+    {% endif %}
+
+    {{ content | safe }}
+
+    {% if kurz and kurz.length %}
+    <div class="kurz">
+      <h2>Das Wichtigste in Kürze</h2>
+      <ul>
+        {%- for punkt in kurz %}
+        <li>{{ punkt }}</li>
+        {%- endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if istRecht and quellen and quellen.length %}
+    <section class="quellen" aria-labelledby="quellen-titel">
+      <h2 id="quellen-titel">Quellen zum Nachlesen</h2>
+      <ol>
+        {%- for q in quellen %}
+        <li>{% if q.url %}<a href="{{ q.url }}" rel="noopener">{{ q.titel }}</a>{% else %}{{ q.titel }}{% endif %}</li>
+        {%- endfor %}
+      </ol>
+    </section>
+    {% endif %}
+  </div>
+
+  <div class="next">
+    <a href="/">Alle Artikel</a>
+    <span>Kurzversion auf Instagram: <a href="{{ instagram or site.instagram }}" rel="noopener">{{ site.instagramName }}</a></span>
+  </div>
+</article>
