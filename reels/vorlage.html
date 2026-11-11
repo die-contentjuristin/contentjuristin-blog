@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="de-AT">
+<head>
+<meta charset="utf-8">
+<title>Reel-Vorlage</title>
+<!--
+  Reel-Vorlage für @die.contentjuristin (1080 × 1920, 9:16).
+  Wird von render.mjs geladen: window.bauen(daten) baut das Reel, window.zeige(sekunde) stellt einen Zeitpunkt dar.
+  Alle Bewegungen werden aus der Zeit berechnet (keine CSS-Übergänge), damit jedes Bild exakt gleich gerendert wird.
+  Schriften kommen lokal aus src/fonts, es gibt keine Anfragen an fremde Server.
+-->
+<style>
+@font-face{font-family:"Source Serif 4";font-weight:400;src:url("../src/fonts/source-serif-4-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Source Serif 4";font-weight:600;src:url("../src/fonts/source-serif-4-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:400;src:url("../src/fonts/inter-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;src:url("../src/fonts/inter-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;src:url("../src/fonts/inter-latin-600-normal.woff2") format("woff2")}
+
+/* Hell = Strategie und KI & Tools, Navy = Recht im Alltag (wie im Blog: Navy-Flächen nur für Recht-Inhalte) */
+:root{
+  --bg:#F5F6F8; --card:#FFFFFF; --ink:#1B2440; --soft:#3B4560; --line:#C9CEDA; --accent:#7A1F2B; --on-accent:#F5F6F8;
+  --serif:"Source Serif 4",Georgia,serif; --sans:Inter,system-ui,sans-serif;
+}
+body.navy{
+  --bg:#1B2440; --card:#2A3453; --ink:#F5F6F8; --soft:#C9CEDA; --line:#3B4560; --accent:#C8566A; --on-accent:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;position:relative}
+em{font-style:normal;color:var(--accent)}
+
+/* Sicherer Bereich: oben, unten und rechts überdeckt Instagram das Video mit Bedienelementen */
+.marke{position:absolute;left:90px;right:150px;top:250px;display:flex;align-items:center;gap:20px}
+.mono{width:64px;height:64px;border-radius:50%;background:#7A1F2B;color:#F5F6F8;display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.02em;flex:none}
+.marke .name{font-family:var(--serif);font-weight:600;font-size:30px}
+.marke .saeule{margin-left:auto;font-size:22px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.hinweis{position:absolute;left:90px;right:150px;bottom:470px;font-size:22px;line-height:1.4;color:var(--soft);border-top:2px solid var(--line);padding-top:16px}
+
+.szene{position:absolute;left:90px;right:150px;top:360px;bottom:560px;display:flex;flex-direction:column;justify-content:center;gap:calc(var(--s,1)*36px);visibility:hidden}
+.szene > *{will-change:transform,opacity}
+
+.kicker{font-size:calc(var(--s,1)*26px);font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.kicker.leise{color:var(--soft)}
+.hook{font-family:var(--serif);font-weight:600;font-size:calc(var(--s,1)*124px);line-height:1.08;text-wrap:balance}
+.gross{font-family:var(--serif);font-weight:600;font-size:calc(var(--s,1)*88px);line-height:1.12;text-wrap:balance}
+.mittel{font-family:var(--serif);font-weight:600;font-size:calc(var(--s,1)*74px);line-height:1.15;text-wrap:balance}
+.text{font-size:calc(var(--s,1)*46px);line-height:1.42;color:var(--soft);text-wrap:pretty}
+.strich{width:120px;height:8px;background:var(--accent);border-radius:4px}
+
+/* Mythos / Fakt */
+.mythos{font-family:var(--serif);font-size:calc(var(--s,1)*72px);line-height:1.18;color:var(--soft)}
+.mythos span{background-image:linear-gradient(var(--accent),var(--accent));background-repeat:no-repeat;background-position:0 58%;background-size:0% 7px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.fakt{font-family:var(--serif);font-weight:600;font-size:calc(var(--s,1)*80px);line-height:1.16;border-left:10px solid var(--accent);padding-left:36px;text-wrap:balance}
+
+/* Liste */
+.nummer{display:flex;align-items:baseline;gap:28px}
+.nummer b{font-family:var(--serif);font-weight:600;font-size:calc(var(--s,1)*220px);line-height:.85;color:var(--accent)}
+.nummer span{font-size:calc(var(--s,1)*30px);font-weight:600;color:var(--soft);letter-spacing:.08em}
+.pille{align-self:flex-start;font-size:calc(var(--s,1)*30px);font-weight:600;padding:10px 26px;border-radius:999px;border:3px solid var(--accent);color:var(--accent)}
+
+/* Frage aus den DMs */
+.chat{display:flex;flex-direction:column;gap:calc(var(--s,1)*26px);justify-content:flex-start}
+.chatfenster{flex:1;overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 90px);mask-image:linear-gradient(to bottom,transparent 0,#000 90px);padding-top:40px}
+.blase{max-width:88%;font-size:calc(var(--s,1)*46px);line-height:1.36;padding:28px 36px;border-radius:44px}
+.blase.frage{background:var(--card);color:var(--ink);border-bottom-left-radius:12px;align-self:flex-start;box-shadow:0 2px 0 var(--line)}
+.blase.antwort{background:var(--accent);color:var(--on-accent);border-bottom-right-radius:12px;align-self:flex-end}
+.blase.antwort em{color:inherit;text-decoration:underline;text-decoration-thickness:4px;text-underline-offset:8px}
+.tippen{align-self:flex-end;display:flex;gap:12px;padding:30px 38px;border-radius:44px;background:var(--accent)}
+.tippen i{width:16px;height:16px;border-radius:50%;background:var(--on-accent);display:block}
+
+/* Darf ich das? */
+.stempel{align-self:flex-start;font-family:var(--sans);font-weight:600;text-transform:uppercase;font-size:calc(var(--s,1)*72px);letter-spacing:.06em;padding:14px 38px;border:8px solid currentColor;border-radius:18px;transform-origin:30% 50%}
+.stempel.ja{color:var(--ink)}
+.stempel.nein{color:var(--accent)}
+.stempel.kommt{color:var(--soft);font-size:calc(var(--s,1)*56px)}
+
+/* Schluss */
+.schluss{align-items:flex-start}
+.schluss .mono{width:150px;height:150px;font-size:58px}
+.handle{font-size:calc(var(--s,1)*34px);font-weight:600;color:var(--soft)}
+</style>
+</head>
+<body>
+<script>
+"use strict";
+const LESEN_PRO_WORT = 0.32;   // Sekunden pro Wort: lieber etwas zu lang als zu kurz, Reels werden oft zweimal gesehen
+const EIN = 0.45;              // Dauer einer Einblendung
+const AUS = 0.3;               // Ausblenden am Szenenende
+
+const szenen = [];
+let gesamt = 0;
+
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+// *Wort* wird in Dunkelrot hervorgehoben
+// Wörter mit Bindestrich (E-Mail, Google-Suche) werden nicht am Bindestrich umgebrochen
+const fmt = (s) => esc(s)
+  .replace(/[^\s*]+-[^\s*]+/g, '<span style="white-space:nowrap">$&</span>')
+  .replace(/\*(.+?)\*/g, "<em>$1</em>");
+const woerter = (s) => String(s ?? "").trim().split(/\s+/).filter(Boolean).length;
+const lesen = (...texte) => Math.max(1.4, 0.6 + woerter(texte.join(" ")) * LESEN_PRO_WORT);
+const clamp = (x) => Math.min(1, Math.max(0, x));
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeBack = (x) => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+
+function el(tag, klasse, html) {
+  const e = document.createElement(tag);
+  if (klasse) e.className = klasse;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+
+// Eine Szene: Elemente mit Einblendzeitpunkt (Sekunden ab Szenenbeginn) und Art der Bewegung
+function szene(klasse = "") {
+  const s = { el: el("section", "szene " + klasse), teile: [], dauer: 0, extra: [] };
+  document.body.appendChild(s.el);
+  s.add = (node, ab, art = "hoch", parent = s.el) => { parent.appendChild(node); s.teile.push({ node, ab, art }); return node; };
+  szenen.push(s);
+  return s;
+}
+
+function hookSzene(d) {
+  const s = szene();
+  if (d.vorhook) s.add(el("p", "kicker", fmt(d.vorhook)), 0, "sofort");
+  s.add(el("h1", "hook", fmt(d.hook)), 0, "sofort");
+  s.add(el("div", "strich"), 0.25, "breit");
+  s.dauer = Math.max(2.4, lesen(d.hook, d.vorhook) + 0.5);
+  return s;
+}
+
+const FORMATE = {
+  "mythos-fakt"(d) {
+    const n = d.paare.length;
+    d.paare.forEach((p, i) => {
+      const s = szene();
+      s.add(el("p", "kicker leise", `Mythos ${n > 1 ? `${i + 1} / ${n}` : ""}`), 0);
+      const m = s.add(el("p", "mythos", `<span>${fmt(p.mythos)}</span>`), 0.1);
+      const durch = 0.1 + lesen(p.mythos);
+      s.extra.push((lokal) => {
+        const x = easeOut(clamp((lokal - durch) / 0.5));
+        m.firstChild.style.backgroundSize = `${x * 100}% 7px`;
+        m.style.opacity = String(1 - 0.45 * x);
+      });
+      s.add(el("p", "kicker", "Fakt"), durch + 0.35);
+      s.add(el("p", "fakt", fmt(p.fakt)), durch + 0.5);
+      s.dauer = durch + 0.5 + lesen(p.fakt) + 0.7;
+    });
+  },
+
+  liste(d) {
+    const n = d.punkte.length;
+    d.punkte.forEach((p, i) => {
+      const s = szene();
+      s.add(el("div", "nummer", `<b>${i + 1}</b><span>von ${n}</span>`), 0);
+      if (p.zusatz) s.add(el("p", "pille", fmt(p.zusatz)), 0.15);
+      s.add(el("h2", "gross", fmt(p.titel)), 0.25);
+      if (p.text) s.add(el("p", "text", fmt(p.text)), 0.25 + Math.min(1.2, lesen(p.titel) * 0.6));
+      s.dauer = 0.6 + lesen(p.titel, p.text) + 0.5;
+    });
+  },
+
+  "dm-frage"(d) {
+    const s = szene("chat");
+    s.add(el("p", "kicker", d.ueberschrift || "Frage aus den DMs"), 0);
+    const fenster = el("div", "chatfenster");
+    const spalte = el("div", "chat");
+    fenster.appendChild(spalte); s.el.appendChild(fenster);
+    s.teile.push({ node: fenster, ab: 0, art: "sofort" });
+    s.add(el("p", "blase frage", fmt(d.frage)), 0.2, "blase", spalte);
+    let t = 0.2 + lesen(d.frage);
+    const blasen = [];
+    d.antworten.forEach((a) => {
+      const tipp = el("div", "tippen", "<i></i><i></i><i></i>");
+      spalte.appendChild(tipp);
+      const start = t;
+      t += 0.8;
+      const b = s.add(el("p", "blase antwort", fmt(a)), t, "blase", spalte);
+      blasen.push(b);
+      s.extra.push((lokal) => {
+        const sichtbar = lokal >= start && lokal < start + 0.8;
+        tipp.style.display = sichtbar ? "flex" : "none";
+        [...tipp.children].forEach((punkt, k) => {
+          punkt.style.transform = `translateY(${-10 * Math.max(0, Math.sin((lokal - start) * 9 - k * 0.9))}px)`;
+        });
+      });
+      t += lesen(a);
+    });
+    // Wenn die Blasen nicht mehr ins Fenster passen, rutscht der Chat sanft nach oben
+    s.extra.push((lokal) => {
+      const hoehe = fenster.clientHeight;
+      let schub = 0;
+      for (const teil of s.teile) {
+        if (!teil.node.classList.contains("blase")) continue;
+        const p = easeOut(clamp((lokal - teil.ab) / EIN));
+        if (p <= 0) continue;
+        const unten = teil.node.offsetTop + teil.node.offsetHeight + 40 + 16; // offsetTop zählt ab der Spalte, + Innenabstand des Fensters + Luft
+        schub = Math.max(schub, p * Math.max(0, unten - hoehe));
+      }
+      spalte.style.transform = `translateY(${-schub}px)`;
+    });
+    s.dauer = t + 1.0;
+  },
+
+  "darf-ich"(d) {
+    const n = d.fragen.length;
+    const STEMPEL = { ja: ["ja", "Ja"], nein: ["nein", "Nein"], "kommt drauf an": ["kommt", "Kommt drauf an"] };
+    d.fragen.forEach((f, i) => {
+      const s = szene();
+      s.add(el("p", "kicker leise", `${d.ueberschrift || "Darf ich …"}  ${n > 1 ? `${i + 1} / ${n}` : ""}`), 0);
+      s.add(el("h2", "mittel", fmt(f.frage)), 0.1);
+      const st = STEMPEL[String(f.antwort).toLowerCase().trim()];
+      const ab = 0.1 + lesen(f.frage) + 0.3;
+      s.add(el("p", "stempel " + st[0], st[1]), ab, "stempel");
+      if (f.warum) s.add(el("p", "text", fmt(f.warum)), ab + 0.5);
+      s.dauer = ab + 0.5 + lesen(f.warum || "") + 0.6;
+    });
+  },
+
+  statement(d) {
+    d.aussagen.forEach((a) => {
+      const s = szene();
+      s.add(el("p", "gross", fmt(a)), 0.1);
+      s.dauer = lesen(a) + 0.8;
+    });
+  },
+};
+
+function schlussSzene(d) {
+  const s = szene("schluss");
+  s.add(el("div", "mono", "CJ"), 0, "pop");
+  s.add(el("p", "gross", fmt(d.cta || "Speichern für später.")), 0.2);
+  if (d.cta_klein) s.add(el("p", "text", fmt(d.cta_klein)), 0.5);
+  s.add(el("p", "handle", "@die.contentjuristin"), 0.7);
+  s.dauer = Math.max(3.2, lesen(d.cta, d.cta_klein) + 1.2);
+  s.letzte = true;
+}
+
+// Schrift verkleinern, bis der Inhalt in den sicheren Bereich passt
+function einpassen(s) {
+  s.el.style.visibility = "visible";
+  let skala = 1;
+  const zuGross = () => [...s.el.children].reduce((h, c) => h + c.offsetHeight, 0) + (s.el.children.length - 1) * 36 * skala > s.el.clientHeight;
+  if (!s.el.classList.contains("chat")) {
+    while (zuGross() && skala > 0.55) { skala -= 0.03; s.el.style.setProperty("--s", skala.toFixed(2)); }
+  }
+  s.el.style.visibility = "hidden";
+}
+
+window.bauen = async function (d) {
+  const recht = d.saeule === "Recht im Alltag";
+  if (recht) document.body.classList.add("navy");
+  const marke = el("div", "marke", `<div class="mono">CJ</div><span class="name">die.contentjuristin</span><span class="saeule">${esc(d.saeule || "")}</span>`);
+  document.body.appendChild(marke);
+  if (recht) document.body.appendChild(el("p", "hinweis", `Allgemeine Information, keine Rechtsberatung.${d.stand ? ` Stand: ${esc(d.stand)}.` : ""}${d.gilt_fuer ? ` Gilt für ${esc(d.gilt_fuer)}.` : ""}`));
+
+  hookSzene(d);
+  FORMATE[d.format](d);
+  schlussSzene(d);
+
+  await document.fonts.ready;
+  let t = 0;
+  for (const s of szenen) {
+    if (s.dauer < 1.4) s.dauer = 1.4;
+    s.start = t; t += s.dauer;
+    einpassen(s);
+  }
+  gesamt = t;
+  return { dauer: gesamt, hookEnde: szenen[0].dauer };
+};
+
+window.formate = Object.keys(FORMATE);
+
+window.zeige = function (t) {
+  for (const s of szenen) {
+    const lokal = t - s.start;
+    const aktiv = lokal >= 0 && lokal < s.dauer;
+    s.el.style.visibility = aktiv ? "visible" : "hidden";
+    if (!aktiv) continue;
+    const aus = s.letzte ? 1 : 1 - clamp((lokal - (s.dauer - AUS)) / AUS);
+    s.el.style.opacity = String(aus);
+    for (const { node, ab, art } of s.teile) {
+      const p = art === "sofort" ? 1 : clamp((lokal - ab) / EIN);
+      const e = easeOut(p);
+      node.style.opacity = String(art === "sofort" ? 1 : e);
+      if (art === "hoch" || art === "blase") node.style.transform = `translateY(${(1 - e) * 40}px)`;
+      if (art === "blase") node.style.transform += ` scale(${0.92 + 0.08 * e})`;
+      if (art === "breit") { node.style.transformOrigin = "left center"; node.style.transform = `scaleX(${e})`; }
+      if (art === "stempel") {
+        const b = p >= 1 ? 1 : easeBack(p);
+        node.style.transform = `rotate(-5deg) scale(${1.5 - 0.5 * b})`;
+        node.style.opacity = String(Math.min(1, p * 2.5));
+      }
+      if (art === "pop") node.style.transform = `scale(${0.6 + 0.4 * (p >= 1 ? 1 : easeBack(p))})`;
+    }
+    for (const f of s.extra) f(lokal);
+  }
+};
+</script>
+</body>
+</html>

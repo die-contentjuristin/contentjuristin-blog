@@ -1,0 +1,38 @@
+# Erstellt die Reels aus reels/inhalte/ als MP4-Videos, sobald dort etwas geändert wird.
+# Die fertigen Videos liegen danach im Reiter "Actions" → letzter Lauf → unten bei "Artifacts" zum Herunterladen.
+name: Reels erstellen
+
+on:
+  push:
+    paths:
+      - "reels/inhalte/**"
+      - "reels/vorlage.html"
+      - "reels/render.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reels:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: reels
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: reels/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: node render.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reels
+          path: reels/fertig/
+          if-no-files-found: warn
