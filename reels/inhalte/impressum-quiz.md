@@ -3,8 +3,8 @@ format: darf-ich
 saeule: "Recht im Alltag"
 stand: "November 2026"
 gilt_fuer: "Österreich"
-vorhook: "Impressum-Quiz"
 hook: "Darf ich das? *Rate mit.*"
+unterzeile: "Drei Fragen zum Impressum auf Instagram."
 ueberschrift: "Darf ich …"
 fragen:
   - frage: "… nur meine E-Mail-Adresse als Kontakt angeben?"
@@ -17,5 +17,5 @@ fragen:
     antwort: "nein"
     warum: "Behörden und Gerichte müssen dir dort etwas zustellen können."
 cta: "Wie viele hattest du richtig?"
-cta_klein: "Schreib's in die Kommentare. Die Checkliste steht im Blog."
+cta_klein: "Schreib's in die Kommentare."
 ---

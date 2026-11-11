@@ -1,19 +1,31 @@
 # Reels ohne B-Roll
 
-Text-Reels im Design des Blogs: Navy, Papier, Dunkelrot, Source Serif und Inter. Kein Filmen, keine Stockvideos, kein Gesicht. Du schreibst eine kurze Textdatei, GitHub macht daraus ein fertiges Video (MP4, 1080 × 1920) und ein Titelbild.
+Text-Reels im selben Look wie deine Carousel-Beiträge: Navy, Papier, Dunkelrot, Source Serif und Inter. Kein Filmen, keine Stockvideos, kein Gesicht. Du schreibst eine kurze Textdatei, GitHub macht daraus ein fertiges Video (MP4, 1080 × 1920) und ein Titelbild.
 
-- Strategie und KI & Tools: heller Hintergrund
-- Recht im Alltag: Navy-Hintergrund mit der Zeile „Allgemeine Information, keine Rechtsberatung. Stand: …“
+- Strategie und KI & Tools: heller Hintergrund, Säule als rote Laufschrift
+- Recht im Alltag: Navy-Hintergrund, Säule als rote Box, unten „Allgemeine Info, keine Rechtsberatung“ mit Stand
+- Auf jeder Folie wie im Carousel: `@die.contentjuristin` links oben, Zähler `2/6` rechts oben, unten rechts eine Linie, die mitläuft
 
-## Die fünf Formate
+## Die sechs Formate
 
 | Format | So sieht es aus | Passt für |
 |---|---|---|
-| `mythos-fakt` | Irrtum erscheint, wird durchgestrichen, darunter der Fakt | Recht-Irrtümer, „Das glauben viele …“ |
-| `liste` | Große Nummer, Titel, kurzer Satz. Ein Punkt pro Bild | Anleitungen, „3 Fehler bei …“ |
-| `dm-frage` | Frage als Chat-Nachricht, Antwort kommt Blase für Blase | Echte Fragen aus Nachrichten und Kommentaren |
-| `darf-ich` | Frage, dann Stempel JA / NEIN / KOMMT DRAUF AN, dann Begründung | Quiz, bringt Kommentare |
-| `statement` | Ein großer Satz pro Bild | Meinungen, Einblicke, schnelle Puffer-Themen |
+| `mythos-fakt` | Roter Nummernkreis, Irrtum als Zitat-Karte, darunter „Warum das nicht stimmt“ und der Fakt | Recht-Irrtümer, „3 Fehler beim …“ |
+| `vergleich` | Überschrift, rote Karte „So nicht“ ✗, dann Karte „So schon“ ✓ | Formulierungen, Bio, Captions |
+| `liste` | Nummernkreis mit Zusatz (z. B. „5 Min.“), Titel, kurzer Satz | Anleitungen, Schritte |
+| `dm-frage` | Frage als Zitat-Blase, Antwort kommt Blase für Blase | Echte Fragen aus Nachrichten und Kommentaren |
+| `darf-ich` | Frage, dann Urteil JA ✓ / NEIN ✗ / KOMMT DRAUF AN, dann Begründung | Quiz, bringt Kommentare |
+| `statement` | Ein großer Satz pro Folie | Meinungen, Einblicke, schnelle Puffer-Themen |
+
+Bei jedem Format kannst du zusätzlich verwenden:
+
+| Feld | Wirkung |
+|---|---|
+| `zahl: "3"` | Große Zahl über dem Hook, wie im Carousel „3 Fehler beim Impressum“ |
+| `unterzeile` | Kleiner Satz unter dem Hook, z. B. „Drei Gründe, die fast jeder übersieht.“ |
+| `kurz` + `kurz_titel` | Folie „Das Wichtigste in Kürze“ mit nummerierter Box vor dem Schluss |
+| `cta`, `cta_klein` | Schlussfolie: großer Satz, kleiner Satz darunter |
+| `knopf` | Text im Knopf unten rechts auf der Schlussfolie (Standard: „Speichern“) |
 
 Leere Vorlagen mit Erklärungen liegen in `reels/vorlagen/`. Fertige Beispiele liegen in `reels/inhalte/`.
 
@@ -76,6 +88,7 @@ Die ausführliche Version mit Checkliste findest du im Blog, Link in der Bio.
 - „Die häufigste Frage in meinen DMs: *[Thema]*“
 - „[Zahl] Fehler bei *[Thema]*, die ich ständig sehe“
 - „Rate mit: *Erlaubt oder nicht?*“
+- „Warum dich *niemand* sieht.“
 - „Unpopuläre Meinung: *[Aussage]*“
 - „Was ich Selbständigen zu *[Thema]* immer sage“
 
@@ -86,7 +99,7 @@ Rechtliche Inhalte vor dem Posten bitte wie immer gegen aktuelle Quellen prüfen
 | Säule | Format | Hook |
 |---|---|---|
 | Recht im Alltag | `darf-ich` | „Musik in Reels: *Darf ich das?*“ |
-| Recht im Alltag | `mythos-fakt` | „3 Mythen zu *Werbekennzeichnung*“ |
+| Recht im Alltag | `mythos-fakt` | `zahl: "3"`, „Mythen zur *Werbekennzeichnung*“ |
 | Recht im Alltag | `dm-frage` | „Darf ich Kundinnen-Fotos *reposten*?“ |
 | Recht im Alltag | `liste` | „Gewinnspiel auf Instagram: *4 Punkte* vorher prüfen“ |
 | Recht im Alltag | `darf-ich` | „Bewertungen posten: *Erlaubt oder nicht?*“ |
@@ -94,7 +107,7 @@ Rechtliche Inhalte vor dem Posten bitte wie immer gegen aktuelle Quellen prüfen
 | Recht im Alltag | `mythos-fakt` | „3 Mythen zu *KI-Bildern* und Urheberrecht“ |
 | Strategie | `liste` | „*3 Fehler*, die deine Reichweite bremsen“ |
 | Strategie | `statement` | „Likes sind egal. *Speichern* zählt.“ |
-| Strategie | `liste` | „Deine Bio in *4 Zeilen*“ |
+| Strategie | `vergleich` | „Deine Bio: *So nicht, so schon*“ |
 | Strategie | `mythos-fakt` | „3 Mythen übers *tägliche Posten*“ |
 | Strategie | `statement` | „Zwei Posts pro Woche *reichen*.“ |
 | KI & Tools | `liste` | „*3 Prompts* für deine Monatsplanung“ |

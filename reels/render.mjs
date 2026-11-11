@@ -18,6 +18,7 @@ const SAEULEN = ["Strategie", "Recht im Alltag", "KI & Tools"];
 const PFLICHT = {
   "mythos-fakt": ["paare"],
   liste: ["punkte"],
+  vergleich: ["paare"],
   "dm-frage": ["frage", "antworten"],
   "darf-ich": ["fragen"],
   statement: ["aussagen"],

@@ -3,8 +3,9 @@
 # Gut für: Anleitungen, „3 Fehler bei …“, Checklisten. 3 bis 5 Punkte sind ideal.
 format: liste
 saeule: "Strategie"
-vorhook: ""
-hook: "*3 Fehler* bei Thema"
+zahl: ""                         # optional: große Zahl über dem Hook, z. B. "3" (wie im Carousel „3 Fehler …“)
+hook: "*3 Fehler* bei Thema"                     # *Sternchen* = Wort in Dunkelrot
+unterzeile: ""                   # optional: kleiner Satz unter dem Hook
 punkte:
   - zusatz: ""                   # optional: kleine Pille, z. B. "5 Min." oder "Fehler"
     titel: "Kurzer Titel"
@@ -13,6 +14,12 @@ punkte:
     text: "Erklärung."
   - titel: "Dritter Punkt"
     text: "Erklärung."
+kurz:                            # optional: Folie „Das Wichtigste in Kürze“ vor dem Schluss
+  - "Erster Punkt"
+  - "Zweiter Punkt"
+  - "Dritter Punkt"
+kurz_titel: "Drei Dinge zum Mitnehmen"
 cta: "Speichern für später."
-cta_klein: ""
+cta_klein: ""                    # optional
+knopf: "Speichern"               # Text im Knopf unten rechts, z. B. "Teilen" oder "Kommentieren"
 ---
