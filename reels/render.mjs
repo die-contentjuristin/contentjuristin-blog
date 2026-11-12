@@ -65,7 +65,7 @@ async function rendere(browser, datei) {
   const { dauer, hookEnde } = await seite.evaluate((d) => window.bauen(d), daten);
 
   // Titelbild: der Hook, so wie er beim Öffnen zu sehen ist
-  await seite.evaluate((t) => window.zeige(t), Math.min(1.2, hookEnde - 0.4));
+  await seite.evaluate((t) => window.zeige(t), hookEnde - 0.25);
   await seite.screenshot({ path: path.join(fertig, `${name}-titelbild.png`) });
 
   const { stdin, fertigP } = ffmpeg(path.join(fertig, `${name}.mp4`));

@@ -10,6 +10,7 @@ punkte:
   - zusatz: ""                   # optional: kleine Pille, z. B. "5 Min." oder "Fehler"
     titel: "Kurzer Titel"
     text: "Ein bis zwei Sätze Erklärung."
+    beispiel: ""                 # optional: Beispielsatz, der sich eintippt. ___ = Lücke zum Ausfüllen
   - titel: "Zweiter Punkt"
     text: "Erklärung."
   - titel: "Dritter Punkt"

@@ -26,6 +26,10 @@ Bei jedem Format kannst du zusätzlich verwenden:
 | `kurz` + `kurz_titel` | Folie „Das Wichtigste in Kürze“ mit nummerierter Box vor dem Schluss |
 | `cta`, `cta_klein` | Schlussfolie: großer Satz, kleiner Satz darunter |
 | `knopf` | Text im Knopf unten rechts auf der Schlussfolie (Standard: „Speichern“) |
+| `beispiel` (nur bei `liste`, pro Punkt) | Beispielsatz in einer Karte, der sich wie getippt aufbaut |
+| `___` (drei Unterstriche, in jedem Text) | Lücke zum Ausfüllen, z. B. für Lückentext-Vorlagen |
+
+Die Bewegungen passieren automatisch: Wörter im Hook und in großen Sätzen kommen nacheinander, hervorgehobene Wörter werden dunkelrot angestrichen, Folien wechseln wie beim Swipen.
 
 Leere Vorlagen mit Erklärungen liegen in `reels/vorlagen/`. Fertige Beispiele liegen in `reels/inhalte/`.
 
@@ -46,7 +50,7 @@ Tipp: Eine Datei, deren Name mit `_` beginnt (z. B. `_entwurf-musik.md`), wird �
 
 - **Hook:** höchstens 8 Wörter. Er ist ab der ersten Sekunde zu sehen und wird zum Titelbild.
 - **Pro Bild ein Gedanke**, höchstens etwa 15 Wörter.
-- **Ein Wort hervorheben** mit Sternchen: `*Impressum*`. Mehr als eins pro Satz verwässert den Effekt.
+- **Ein Wort hervorheben** mit Sternchen: `*Impressum*`. Es wird beim Einblenden dunkelrot angestrichen. Mehr als eins pro Satz verwässert den Effekt.
 - **Texte immer in Anführungszeichen** `"…"`, vor allem wenn ein Doppelpunkt vorkommt.
 - **Recht im Alltag:** `stand` immer ausfüllen, Quellen in die Caption oder in den Blogartikel.
 - Die Anzeigedauer berechnet sich automatisch aus der Wortanzahl. Ideal sind 12 bis 25 Sekunden.

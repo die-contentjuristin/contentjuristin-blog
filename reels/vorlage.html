@@ -32,11 +32,14 @@ body.navy{
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:1080px;height:1920px;overflow:hidden}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;position:relative}
-em{font-style:normal;color:var(--rot)}
-body.navy em{color:var(--paper);background:var(--rot);padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+/* Hervorhebung: dunkelrote Markierung, die sich beim Einblenden von links aufbaut (--m wird pro Bild gesetzt) */
+em{font-style:normal;color:var(--rot);background-image:linear-gradient(var(--rot),var(--rot));background-repeat:no-repeat;background-position:0 96%;background-size:var(--m,100%) .09em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+body.navy em{color:var(--paper);background-position:0 0;background-size:var(--m,100%) 100%;padding:0 .12em}
+.w{position:relative}
+.luecke{display:inline-block;width:2.6em;height:.95em;border-bottom:.08em solid currentColor;vertical-align:baseline;opacity:.75}
 /* Auf Navy wäre dunkelroter Text kaum lesbar: Zwischenzeilen werden zur dunkelroten Box, wie das Etikett */
 body.navy .kicker:not(.nummer .kicker):not(.vergleich .kicker){align-self:flex-start;background:var(--rot);color:var(--paper);padding:6px 14px}
-body.navy .karte em,body.navy .liste-box em{color:var(--rot);background:none;padding:0}
+body.navy .karte em,body.navy .liste-box em{color:var(--rot);background-position:0 96%;background-size:var(--m,100%) .09em;padding:0}
 
 /* Rahmen. Oben, unten und rechts überdeckt Instagram das Video mit Bedienelementen, deshalb der Abstand */
 .kopf{position:absolute;left:108px;right:108px;top:240px;display:flex;justify-content:space-between;font-size:34px;font-weight:400}
@@ -67,6 +70,7 @@ body.navy .etikett{background:var(--rot);color:var(--paper);letter-spacing:.02em
 .nummer .kicker{color:var(--ink)}
 
 .karte{background:var(--karte);color:var(--karte-ink);border:2px solid var(--karte-rand);border-radius:22px;padding:calc(var(--s,1)*52px) calc(var(--s,1)*60px)}
+.beispiel{font-family:var(--serif);font-weight:400;font-size:calc(var(--s,1)*56px);line-height:1.3;background:var(--karte);color:var(--karte-ink);border:2px solid var(--karte-rand);border-left:10px solid var(--rot);border-radius:12px;padding:calc(var(--s,1)*40px) calc(var(--s,1)*48px)}
 .karte.zitat{font-family:var(--serif);font-weight:400;font-size:calc(var(--s,1)*68px);line-height:1.2}
 
 /* So nicht / So schon */
@@ -90,7 +94,7 @@ body.navy .etikett{background:var(--rot);color:var(--paper);letter-spacing:.02em
 .blase{max-width:88%;font-size:calc(var(--s,1)*46px);line-height:1.4;padding:30px 40px;border-radius:30px}
 .blase.frage{background:var(--karte);color:var(--karte-ink);border:2px solid var(--karte-rand);border-bottom-left-radius:8px;align-self:flex-start;font-family:var(--serif);font-size:calc(var(--s,1)*52px);line-height:1.25}
 .blase.antwort{background:var(--rot);color:var(--weiss);border-bottom-right-radius:8px;align-self:flex-end}
-.blase.antwort em{color:inherit;background:none;padding:0;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:8px}
+.blase.antwort em{color:inherit;background:none !important;padding:0;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:8px}
 .tippen{align-self:flex-end;display:flex;gap:12px;padding:32px 40px;border-radius:30px;border-bottom-right-radius:8px;background:var(--rot)}
 .tippen i{width:16px;height:16px;border-radius:50%;background:var(--weiss);display:block}
 
@@ -127,7 +131,8 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 // *Wort* wird rot hervorgehoben. Wörter mit Bindestrich (E-Mail) werden nicht am Bindestrich umgebrochen.
 const fmt = (s) => esc(s)
   .replace(/[^\s*]+-[^\s*]+/g, '<span style="white-space:nowrap">$&</span>')
-  .replace(/\*(.+?)\*/g, "<em>$1</em>");
+  .replace(/\*(.+?)\*/g, "<em>$1</em>")
+  .replace(/_{3,}([.,!?:;]*)/g, '<span style="white-space:nowrap"><span class="luecke"></span>$1</span>');
 const zitat = (s) => `„${fmt(String(s ?? "").replace(/^[„"“]+|[“"”]+$/g, ""))}“`;
 const woerter = (s) => String(s ?? "").trim().split(/\s+/).filter(Boolean).length;
 const lesen = (...texte) => Math.max(1.0, 0.3 + woerter(texte.join(" ")) * LESEN_PRO_WORT);
@@ -151,6 +156,34 @@ function szene(klasse = "") {
   return s;
 }
 
+// Zerlegt den Text eines Elements in Wörter (art "woerter") oder Zeichen (art "schreiben").
+// Hervorhebungen und Lücken bleiben erhalten; Lücken zählen als eine Einheit.
+function zerlege(node, zeichen) {
+  const einheiten = [];
+  const geh = (n) => {
+    for (const k of [...n.childNodes]) {
+      if (k.nodeType === 3) {
+        const teile = zeichen ? [...k.textContent] : k.textContent.split(/(\s+)/);
+        const frag = document.createDocumentFragment();
+        for (const t of teile) {
+          if (!t) continue;
+          if (/^\s+$/.test(t)) { frag.appendChild(document.createTextNode(t)); continue; }
+          const sp = el("span", "w", null); sp.textContent = t;
+          frag.appendChild(sp); einheiten.push(sp);
+        }
+        k.replaceWith(frag);
+      } else if (k.classList?.contains("luecke")) {
+        einheiten.push(k);
+      } else geh(k);
+    }
+  };
+  geh(node);
+  return einheiten;
+}
+const WORT_TAKT = 0.07;      // Abstand zwischen zwei Wörtern
+const TIPP_TAKT = 0.022;     // Abstand zwischen zwei Buchstaben beim Tippen
+const einheitenDauer = (node, zeichen) => (zeichen ? [...node.textContent].length * TIPP_TAKT : woerter(node.textContent) * WORT_TAKT);
+
 function nummer(i, kicker) {
   return el("div", "nummer", `<div class="kreis">${i}</div>${kicker ? `<p class="kicker">${fmt(kicker)}</p>` : ""}`);
 }
@@ -158,10 +191,12 @@ function nummer(i, kicker) {
 function hookSzene(d) {
   const s = szene();
   s.add(el("p", "etikett", esc(d.saeule)), 0, "sofort");
-  if (d.zahl) s.add(el("p", "zahl", esc(d.zahl)), 0, "sofort");
-  s.add(el("h1", "hook" + (d.zahl ? " mit-zahl" : ""), fmt(d.hook)), 0, "sofort");
-  if (d.unterzeile) s.add(el("p", "unterzeile", fmt(d.unterzeile)), 0, "sofort");
-  s.dauer = Math.max(1.8, lesen(d.hook, d.unterzeile) + 0.2);
+  let ab = 0;
+  if (d.zahl) { s.add(el("p", "zahl", esc(d.zahl)), 0, "pop"); ab = 0.2; }
+  const h = s.add(el("h1", "hook" + (d.zahl ? " mit-zahl" : ""), fmt(d.hook)), ab, "woerter");
+  ab += woerter(h.textContent) * WORT_TAKT + 0.15;
+  if (d.unterzeile) s.add(el("p", "unterzeile", fmt(d.unterzeile)), ab);
+  s.dauer = Math.max(1.8, ab + lesen(d.hook, d.unterzeile) * 0.7);
   return s;
 }
 
@@ -169,7 +204,7 @@ const FORMATE = {
   "mythos-fakt"(d) {
     d.paare.forEach((p, i) => {
       const s = szene();
-      s.add(nummer(i + 1, p.kicker || (i === 0 ? d.erster_kicker : null) || d.kicker || "Mythos"), 0);
+      s.add(nummer(i + 1, p.kicker || (i === 0 ? d.erster_kicker : null) || d.kicker || "Mythos"), 0, "pop");
       s.add(el("p", "karte zitat", zitat(p.mythos)), 0.15);
       const ab = 0.1 + lesen(p.mythos) * 0.8;
       s.add(el("p", "kicker", fmt(d.warum_titel || "Warum das nicht stimmt")), ab);
@@ -181,10 +216,19 @@ const FORMATE = {
   liste(d) {
     d.punkte.forEach((p, i) => {
       const s = szene();
-      s.add(nummer(i + 1, p.zusatz), 0);
-      s.add(el("h2", "titel", fmt(p.titel)), 0.2);
-      if (p.text) s.add(el("p", "text", fmt(p.text)), 0.15 + Math.min(0.6, lesen(p.titel) * 0.4));
-      s.dauer = 0.3 + lesen(p.titel, p.text) + 0.2;
+      s.add(nummer(i + 1, p.zusatz), 0, "pop");
+      const t = s.add(el("h2", "titel", fmt(p.titel)), 0.15, "woerter");
+      let ab = 0.15 + einheitenDauer(t) + 0.1;
+      if (p.text) s.add(el("p", "text", fmt(p.text)), ab);
+      let dauer = ab + lesen(p.text || "") + 0.2;
+      // optional: Beispielsatz, der sich eintippt (Lücken mit ___)
+      if (p.beispiel) {
+        const b = el("p", "beispiel", fmt(p.beispiel));
+        const bAb = ab + (p.text ? lesen(p.text) * 0.6 : 0.1);
+        s.add(b, bAb, "schreiben");
+        dauer = Math.max(dauer, bAb + einheitenDauer(b, true) + lesen(p.beispiel) * 0.6 + 0.2);
+      }
+      s.dauer = dauer;
     });
   },
 
@@ -242,7 +286,7 @@ const FORMATE = {
     const URTEIL = { ja: ["ja", "Ja"], nein: ["nein", "Nein"], "kommt drauf an": ["kommt", "Kommt drauf an"] };
     d.fragen.forEach((f, i) => {
       const s = szene();
-      s.add(nummer(i + 1, d.ueberschrift || "Darf ich …"), 0);
+      s.add(nummer(i + 1, d.ueberschrift || "Darf ich …"), 0, "pop");
       s.add(el("h2", "titel", fmt(f.frage)), 0.15);
       const u = URTEIL[String(f.antwort).toLowerCase().trim()];
       const ab = 0.1 + lesen(f.frage) * 0.85;
@@ -255,8 +299,8 @@ const FORMATE = {
   statement(d) {
     d.aussagen.forEach((a) => {
       const s = szene();
-      s.add(el("p", "gross", fmt(a)), 0.1);
-      s.dauer = lesen(a) + 0.3;
+      const g = s.add(el("p", "gross", fmt(a)), 0.1, "woerter");
+      s.dauer = 0.1 + einheitenDauer(g) + lesen(a) * 0.75 + 0.2;
     });
   },
 };
@@ -273,7 +317,7 @@ function kurzSzene(d) {
 
 function schlussSzene(d) {
   const s = szene("schluss");
-  s.add(el("p", "gross", fmt(d.cta || "Speichern für später.")), 0);
+  s.add(el("p", "gross", fmt(d.cta || "Speichern für später.")), 0, "woerter");
   if (d.cta_klein) s.add(el("p", "text", fmt(d.cta_klein)), 0.15);
   s.add(el("div", "abschluss", `<div class="wer"><div class="mono">CJ</div><span>${fmt(d.folgen || "Folgen für mehr")}</span></div><span class="knopf">${fmt(d.knopf || "Speichern")}</span>`), 0.3);
   s.dauer = Math.max(2.4, lesen(d.cta, d.cta_klein) + 0.8);
@@ -309,6 +353,10 @@ window.bauen = async function (d) {
   kurzSzene(d);
   schlussSzene(d);
 
+  for (const s of szenen) for (const teil of s.teile) {
+    if (teil.art === "woerter" || teil.art === "schreiben") teil.einheiten = zerlege(teil.node, teil.art === "schreiben");
+    teil.ems = [...teil.node.querySelectorAll("em")];
+  }
   await document.fonts.ready;
   let t = 0;
   for (const s of szenen) {
@@ -330,11 +378,34 @@ window.zeige = function (t) {
     s.el.style.visibility = aktiv ? "visible" : "hidden";
     if (!aktiv) return;
     zaehler.textContent = `${nr + 1}/${szenen.length}`;
-    s.el.style.opacity = String(s.letzte ? 1 : 1 - clamp((lokal - (s.dauer - AUS)) / AUS));
-    for (const { node, ab, art } of s.teile) {
+    // Folienwechsel wie beim Swipen: neue Folie kommt von rechts, alte geht nach links
+    const rein = nr === 0 ? 1 : easeOut(clamp(lokal / 0.25));
+    const raus = s.letzte ? 0 : easeOut(clamp((lokal - (s.dauer - AUS)) / AUS));
+    s.el.style.opacity = String(Math.min(rein, 1 - raus));
+    s.el.style.transform = `translateX(${(1 - rein) * 90 - raus * 90}px)`;
+    for (const teil of s.teile) {
+      const { node, ab, art } = teil;
       const p = art === "sofort" ? 1 : clamp((lokal - ab) / EIN);
       const e = easeOut(p);
       node.style.opacity = String(e);
+      // Markierung unter hervorgehobenen Wörtern baut sich auf, kurz nachdem der Text da ist
+      let emAb = ab + 0.25;
+      if (art === "woerter" || art === "schreiben") {
+        const takt = art === "woerter" ? WORT_TAKT : TIPP_TAKT;
+        node.style.opacity = lokal >= ab ? "1" : "0";
+        teil.einheiten.forEach((w, k) => {
+          const q = clamp((lokal - ab - k * takt) / (art === "woerter" ? 0.3 : 0.001));
+          w.style.opacity = String(art === "woerter" ? easeOut(q) : q >= 1 ? 1 : 0);
+          if (art === "woerter") w.style.top = `${(1 - easeOut(q)) * 0.35}em`;
+        });
+        emAb = ab + teil.einheiten.length * takt;
+      }
+      for (const em of teil.ems) em.style.setProperty("--m", `${easeOut(clamp((lokal - emAb) / 0.4)) * 100}%`);
+      if (art === "pop") {
+        node.style.transformOrigin = "left center";
+        node.style.transform = `scale(${0.5 + 0.5 * (p >= 1 ? 1 : easeBack(p))})`;
+        node.style.opacity = String(Math.min(1, p * 3));
+      }
       if (art === "hoch") node.style.transform = `translateY(${(1 - e) * 40}px)`;
       if (art === "blase") node.style.transform = `translateY(${(1 - e) * 40}px) scale(${0.94 + 0.06 * e})`;
       if (art === "stempel") {
