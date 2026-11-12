@@ -1,0 +1,17 @@
+[
+  { "datei": "01-hook-1-monat-30-minuten", "o": "hook", "zeile1": "1 Monat Content.", "zeile2": "*30 Minuten.*", "label": "Content-Planung" },
+  { "datei": "02-schritt-1-kalender", "o": "schritt", "etikett": "Schritt 1", "titel": "Kalender checken", "unter": "5 Minuten" },
+  { "datei": "03-schritt-2-themen", "o": "schritt", "etikett": "Schritt 2", "titel": "Themen verteilen", "unter": "10 Minuten" },
+  { "datei": "04-schritt-3-format", "o": "schritt", "etikett": "Schritt 3", "titel": "Format festlegen", "unter": "10 Minuten" },
+  { "datei": "05-schritt-4-eintragen", "o": "schritt", "etikett": "Schritt 4", "titel": "Alles eintragen", "unter": "5 Minuten" },
+  { "datei": "06-zahl-30-minuten", "o": "zahl", "zahl": "30", "einheit": "Minuten" },
+  { "datei": "07-kreis-mo-mi-fr", "o": "kreis", "text": "Mo · Mi · Fr" },
+  { "datei": "08-checkliste-ablauf", "o": "checkliste", "label": "Dein Ablauf", "titel": "30 Minuten, 4 Schritte", "punkte": "Kalender checken|Themen verteilen|Format festlegen|Alles eintragen" },
+  { "datei": "09-endcard-speichern", "o": "endcard" },
+  { "datei": "10-uebergang-wischblende", "o": "uebergang" },
+  { "datei": "11-mythos-jeden-tag-posten", "o": "mythos", "aussage": "Du musst jeden Tag posten.", "antwort": "Ein fester Rhythmus reicht." },
+  { "datei": "12-textmarker-impressum", "o": "textmarker", "label": "Recht im Alltag", "text": "Wer geschäftlich postet, *braucht ein Impressum.*" },
+  { "datei": "13-atde-impressum", "o": "atde" },
+  { "datei": "14-rechtshinweis", "o": "hinweis", "stand": "11/2026" },
+  { "datei": "15-hook-navy-recht", "o": "hook", "flaeche": "navy", "label": "Recht im Alltag", "zeile1": "Darfst du das", "zeile2": "*posten?*" }
+]
