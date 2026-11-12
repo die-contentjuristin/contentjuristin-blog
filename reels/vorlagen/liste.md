@@ -2,6 +2,7 @@
 # FORMAT: Liste – nummerierte Schritte, Fehler oder Tipps, einer pro Bild.
 # Gut für: Anleitungen, „3 Fehler bei …“, Checklisten. 3 bis 5 Punkte sind ideal.
 format: liste
+stil: "standard"               # standard | wechsel | akzent | poster | karten | farbwechsel (siehe Anleitung)
 saeule: "Strategie"
 zahl: ""                         # optional: große Zahl über dem Hook, z. B. "3" (wie im Carousel „3 Fehler …“)
 hook: "*3 Fehler* bei Thema"                     # *Sternchen* = Wort in Dunkelrot

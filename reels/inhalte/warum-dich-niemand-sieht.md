@@ -1,5 +1,6 @@
 ---
 format: vergleich
+stil: "wechsel"
 saeule: "Strategie"
 hook: "Warum dich *niemand* sieht."
 unterzeile: "Drei Sätze, die du heute noch änderst."

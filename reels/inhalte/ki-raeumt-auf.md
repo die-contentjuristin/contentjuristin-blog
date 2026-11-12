@@ -1,5 +1,6 @@
 ---
 format: statement
+stil: "farbwechsel"
 saeule: "KI & Tools"
 hook: "KI schreibt deine Posts nicht. Sie *räumt* sie auf."
 aussagen:

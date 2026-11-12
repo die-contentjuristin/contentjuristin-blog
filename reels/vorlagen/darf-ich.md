@@ -2,6 +2,7 @@
 # FORMAT: Darf ich das? – Frage, dann ein Urteil JA / NEIN / KOMMT DRAUF AN mit Symbol, dann die Begründung.
 # Gut für: Quiz-Reels, die zum Kommentieren einladen. 3 Fragen sind ideal.
 format: darf-ich
+stil: "standard"               # standard | wechsel | akzent | poster | karten | farbwechsel (siehe Anleitung)
 saeule: "Recht im Alltag"
 stand: "Monat Jahr"
 zahl: ""                         # optional: große Zahl über dem Hook, z. B. "3" (wie im Carousel „3 Fehler …“)

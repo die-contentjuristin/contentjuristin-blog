@@ -1,5 +1,6 @@
 ---
 format: liste
+stil: "poster"
 saeule: "Strategie"
 hook: "Du willst nicht vor die Kamera? *Musst du auch nicht.*"
 unterzeile: "5 Wege, ohne Gesicht Vertrauen aufzubauen."

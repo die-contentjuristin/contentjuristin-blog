@@ -17,6 +17,21 @@ Text-Reels im selben Look wie deine Carousel-Beiträge: Navy, Papier, Dunkelrot,
 | `darf-ich` | Frage, dann Urteil JA ✓ / NEIN ✗ / KOMMT DRAUF AN, dann Begründung | Quiz, bringt Kommentare |
 | `statement` | Ein großer Satz pro Folie | Meinungen, Einblicke, schnelle Puffer-Themen |
 
+## Die sechs Looks (`stil`)
+
+Damit nicht alle Reels gleich aussehen, wählst du pro Reel einen Look. Format (was gezeigt wird) und Look (wie es aussieht) lassen sich frei kombinieren.
+
+| `stil` | So sieht es aus | Gut für |
+|---|---|---|
+| `standard` | Eine Farbe durchgehend (Papier bzw. Navy bei Recht) | Alles, ruhig und klar |
+| `wechsel` | Folien wechseln zwischen Navy und Papier, die neue Farbe wischt herein | Listen, Quiz, Vergleiche |
+| `akzent` | Hook und Schluss vollflächig Dunkelrot, Text zentriert | Fragen, starke Aussagen |
+| `poster` | Hook groß und unten, riesige Kontur-Nummer gleitet durchs Bild | Mythen, Listen mit wenigen Punkten |
+| `karten` | Inhalte auf Karten, die wie ausgeteilt hereinfliegen, Hook auf Notizzettel | Anleitungen, Vorlagen, Tipps |
+| `farbwechsel` | Navy, Dunkelrot und Papier im Wechsel | Statements, kurze Meinungs-Reels |
+
+Tipp: Wechsle die Looks im Feed ab, damit nebeneinander im Profil keine zwei gleichen Titelbilder stehen.
+
 Bei jedem Format kannst du zusätzlich verwenden:
 
 | Feld | Wirkung |

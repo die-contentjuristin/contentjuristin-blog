@@ -1,5 +1,6 @@
 ---
 format: liste
+stil: "karten"
 saeule: "Strategie"
 hook: "Captions in *10 Minuten*."
 unterzeile: "Die 3-Teile-Formel zum Ausfüllen."

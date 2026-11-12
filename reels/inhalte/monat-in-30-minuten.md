@@ -1,5 +1,6 @@
 ---
 format: liste
+stil: "karten"
 saeule: "Strategie"
 hook: "Einen Monat Content in *30 Minuten* planen."
 unterzeile: "Nie wieder vor einem leeren Kalender."

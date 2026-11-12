@@ -2,6 +2,7 @@
 # FORMAT: Statement – eine Meinung oder Erkenntnis, ein großer Satz pro Bild.
 # Gut für: Meinungen, Einblicke, Puffer-Themen ohne Vorbereitung. 2 bis 4 Sätze sind ideal.
 format: statement
+stil: "standard"               # standard | wechsel | akzent | poster | karten | farbwechsel (siehe Anleitung)
 saeule: "KI & Tools"
 zahl: ""                         # optional: große Zahl über dem Hook, z. B. "3" (wie im Carousel „3 Fehler …“)
 hook: "Eine klare *Aussage*."                     # *Sternchen* = Wort in Dunkelrot

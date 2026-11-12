@@ -3,6 +3,7 @@
 # Gut für: Fragen aus Nachrichten, Kommentaren und Kundengesprächen. 3 bis 4 kurze Antworten sind ideal.
 # Bitte keine Namen oder Profilbilder der fragenden Person verwenden.
 format: dm-frage
+stil: "standard"               # standard | wechsel | akzent | poster | karten | farbwechsel (siehe Anleitung)
 saeule: "Recht im Alltag"
 stand: "Monat Jahr"
 zahl: ""                         # optional: große Zahl über dem Hook, z. B. "3" (wie im Carousel „3 Fehler …“)

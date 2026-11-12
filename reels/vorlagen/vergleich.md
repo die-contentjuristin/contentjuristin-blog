@@ -2,6 +2,7 @@
 # FORMAT: So nicht / So schon – Überschrift, rote Karte mit ✗, darunter die Karte mit ✓.
 # Gut für: Formulierungen, Bio, Captions, Call-to-Action. 2 bis 3 Paare sind ideal.
 format: vergleich
+stil: "standard"               # standard | wechsel | akzent | poster | karten | farbwechsel (siehe Anleitung)
 saeule: "Strategie"
 zahl: ""
 hook: "Warum dich *niemand* sieht."

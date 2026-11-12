@@ -1,5 +1,6 @@
 ---
 format: vergleich
+stil: "akzent"
 saeule: "KI & Tools"
 hook: "Viele schauen Reels *ohne Ton*."
 unterzeile: "Automatische Untertitel helfen. Aber nur korrigiert."

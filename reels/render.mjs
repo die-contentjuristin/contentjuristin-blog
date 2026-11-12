@@ -33,6 +33,8 @@ function lies(datei) {
   if (!PFLICHT[d.format]) fehler.push(`format muss eines davon sein: ${Object.keys(PFLICHT).join(" | ")}`);
   if (!SAEULEN.includes(d.saeule)) fehler.push(`saeule muss genau so geschrieben sein: ${SAEULEN.join(" | ")}`);
   if (!d.hook) fehler.push("hook fehlt (der erste Satz, der sofort zu sehen ist)");
+  const STILE = ["standard", "wechsel", "akzent", "poster", "karten", "farbwechsel"];
+  if (d.stil && !STILE.includes(d.stil)) fehler.push(`stil muss eines davon sein: ${STILE.join(" | ")}`);
   for (const feld of PFLICHT[d.format] || []) if (!d[feld] || (Array.isArray(d[feld]) && !d[feld].length)) fehler.push(`${feld} fehlt`);
   if (d.format === "darf-ich")
     (d.fragen || []).forEach((f, i) => {

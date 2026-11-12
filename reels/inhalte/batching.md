@@ -1,5 +1,6 @@
 ---
 format: liste
+stil: "wechsel"
 saeule: "Strategie"
 zahl: "2"
 hook: "Wochen Content an *einem* Nachmittag."

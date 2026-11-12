@@ -1,5 +1,6 @@
 ---
 format: mythos-fakt
+stil: "poster"
 saeule: "Recht im Alltag"
 stand: "November 2026"
 gilt_fuer: "Österreich"

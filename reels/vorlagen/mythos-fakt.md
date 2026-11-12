@@ -2,6 +2,7 @@
 # FORMAT: Mythos / Fakt – Nummernkreis, der Irrtum als Zitat-Karte, darunter „Warum das nicht stimmt“ und der Fakt.
 # Gut für: Recht im Alltag, Strategie-Irrtümer. 2 bis 3 Paare sind ideal.
 format: mythos-fakt
+stil: "standard"               # standard | wechsel | akzent | poster | karten | farbwechsel (siehe Anleitung)
 saeule: "Recht im Alltag"        # Strategie | Recht im Alltag | KI & Tools
 stand: "Monat Jahr"              # nur bei Recht im Alltag, z. B. "Jänner 2027"
 gilt_fuer: "Österreich"          # optional

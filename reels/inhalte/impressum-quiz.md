@@ -1,5 +1,6 @@
 ---
 format: darf-ich
+stil: "wechsel"
 saeule: "Recht im Alltag"
 stand: "November 2026"
 gilt_fuer: "Österreich"

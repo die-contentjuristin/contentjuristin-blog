@@ -1,5 +1,6 @@
 ---
 format: dm-frage
+stil: "akzent"
 saeule: "Recht im Alltag"
 stand: "November 2026"
 gilt_fuer: "Österreich"
