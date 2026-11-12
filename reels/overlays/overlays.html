@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Reel-Overlays</title>
+<!--
+  Motion-Overlays für Reels (1080 × 1920, 9:16) im Look von die.contentjuristin.
+  Jedes Overlay ist eine Funktion der Zeit t (Sekunden), damit render.mjs es
+  Bild für Bild sauber und mit transparentem Hintergrund aufnehmen kann.
+
+  Im Browser ansehen:  overlays.html?o=hook&vorschau=1
+  Texte per URL ändern: overlays.html?o=hook&zeile1=…&zeile2=…   (*Wort* = Akzent)
+-->
+<style>
+@font-face{font-family:"Source Serif 4";font-weight:400;src:url("../../src/fonts/source-serif-4-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Source Serif 4";font-weight:600;src:url("../../src/fonts/source-serif-4-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:400;src:url("../../src/fonts/inter-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;src:url("../../src/fonts/inter-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;src:url("../../src/fonts/inter-latin-600-normal.woff2") format("woff2")}
+
+:root{
+  --navy:#1B2440; --paper:#F5F6F8; --rot:#7A1F2B; --rot-hell:#C8566A;
+  --ink-soft:#3B4560; --on-navy-soft:#C9CEDA; --line:#D5D8E0;
+  --serif:"Source Serif 4",Georgia,serif; --sans:Inter,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:transparent}
+body{font-family:var(--sans);color:var(--navy);-webkit-font-smoothing:antialiased}
+#buehne{position:absolute;inset:0}
+/* Vorschau: Platzhalter statt B-Roll und Instagram-Sicherheitszonen */
+body.vorschau{background:linear-gradient(160deg,#8d8a84 0%,#c9c3b8 45%,#6f6a62 100%)}
+.zone{position:absolute;left:0;right:0;background:rgba(255,0,0,.08);border:2px dashed rgba(255,0,0,.35);pointer-events:none}
+
+/* Bausteine */
+.karte{position:absolute;background:var(--paper);border-radius:12px;box-shadow:0 18px 50px rgba(12,17,32,.28)}
+.karte.navy{background:var(--navy);color:var(--paper)}
+.label{font-size:30px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--rot)}
+.navy .label{color:var(--rot-hell)}
+.serif{font-family:var(--serif);font-weight:600;line-height:1.08;letter-spacing:-.005em}
+.wort{display:inline-block;will-change:transform,opacity}
+.akzent{color:var(--rot);position:relative}
+.navy .akzent{color:var(--rot-hell)}
+.strich{position:absolute;left:0;right:0;bottom:-.06em;height:.075em;background:currentColor;transform-origin:left center;border-radius:2px}
+.etikett{display:inline-block;background:var(--rot);color:var(--paper);font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:6px}
+.mono{border-radius:50%;background:var(--rot);color:var(--paper);display:grid;place-items:center;font-family:var(--serif);font-weight:600;letter-spacing:.02em}
+svg{overflow:visible}
+</style>
+</head>
+<body>
+<div id="buehne"></div>
+<script>
+// ---------- Hilfen ----------
+const P = new URLSearchParams(location.search);
+const par = (k, d) => (P.has(k) ? P.get(k) : d);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a));           // 0..1 zwischen a und b
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeInOut = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const easeBack = (x) => { const c = 1.4; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const el = (tag, cls, html, parent) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; if (parent) parent.appendChild(e); return e; };
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const buehne = document.getElementById("buehne");
+// Gemeinsames Ein/Aus: in = Dauer Einblenden, out = Dauer Ausblenden am Ende
+const raus = (t, dur, out = .4) => easeInOut(seg(t, dur - out, dur));
+
+// Zerlegt "1 Monat *Content.*" in Wort-Spans; *…* wird Akzent (Dunkelrot + Unterstrich)
+function woerter(text, parent) {
+  const spans = [], striche = [];
+  text.split(/(\*[^*]+\*)/).filter(Boolean).forEach((teil) => {
+    const ak = teil.startsWith("*");
+    const roh = ak ? teil.slice(1, -1) : teil;
+    const box = ak ? el("span", "akzent", null, parent) : parent;
+    roh.split(/(\s+)/).forEach((w) => {
+      if (!w) return;
+      if (/^\s+$/.test(w)) { box.appendChild(document.createTextNode(" ")); return; }
+      spans.push(el("span", "wort", esc(w), box));
+    });
+    if (ak) striche.push(el("span", "strich", null, box));
+  });
+  return { spans, striche };
+}
+
+// ---------- Overlays ----------
+const OVERLAYS = {
+
+  // 1) Hook-Titel für die ersten 3 Sekunden
+  hook: {
+    dauer: () => +par("dauer", 3.5),
+    bauen() {
+      const navy = par("flaeche", "papier") === "navy";
+      const k = el("div", "karte" + (navy ? " navy" : ""), null, buehne);
+      Object.assign(k.style, { left: "72px", right: "160px", top: "460px", padding: "56px 64px 64px" });
+      const lab = par("label", "Content-Planung");
+      const l = lab ? el("div", "label", esc(lab), k) : null;
+      if (l) l.style.marginBottom = "26px";
+      const h = el("div", "serif", null, k);
+      h.style.fontSize = par("groesse", "112") + "px";
+      const z1 = el("div", null, null, h), z2 = el("div", null, null, h);
+      const a = woerter(par("zeile1", "1 Monat Content."), z1);
+      const b = woerter(par("zeile2", "*30 Minuten.*"), z2);
+      this.k = k; this.l = l; this.w = [...a.spans, ...b.spans]; this.s = [...a.striche, ...b.striche];
+      // Schrift so weit verkleinern, dass jede Zeile in eine Zeile passt
+      [z1, z2].forEach((z) => (z.style.whiteSpace = "nowrap"));
+      let g = parseFloat(h.style.fontSize);
+      while (g > 56 && [z1, z2].some((z) => z.scrollWidth > h.clientWidth)) h.style.fontSize = (g -= 2) + "px";
+    },
+    frame(t, dur) {
+      const auf = easeOut(seg(t, 0, .45)), o = raus(t, dur);
+      this.k.style.clipPath = `inset(0 ${100 - auf * 100}% 0 0 round 12px)`;
+      this.k.style.transform = `translateY(${-60 * o}px)`; this.k.style.opacity = 1 - o;
+      if (this.l) this.l.style.opacity = seg(t, .2, .45);
+      this.w.forEach((w, i) => { const p = easeOut(seg(t, .25 + i * .09, .6 + i * .09)); w.style.opacity = p; w.style.transform = `translateY(${(1 - p) * 50}px)`; });
+      const s0 = .3 + this.w.length * .09;
+      this.s.forEach((s) => (s.style.transform = `scaleX(${easeInOut(seg(t, s0, s0 + .4))})`));
+    },
+  },
+
+  // 2) Schritt-Etikett / Kapitel oben links
+  schritt: {
+    dauer: () => +par("dauer", 6),
+    bauen() {
+      const wrap = el("div", null, null, buehne);
+      Object.assign(wrap.style, { position: "absolute", left: "72px", top: "300px" });
+      const e = el("div", "etikett", esc(par("etikett", "Schritt 1")), wrap);
+      Object.assign(e.style, { fontSize: "30px", padding: "14px 22px", position: "relative", zIndex: 2 });
+      const k = el("div", "karte" + (par("flaeche", "papier") === "navy" ? " navy" : ""), null, wrap);
+      Object.assign(k.style, { position: "relative", marginTop: "-6px", padding: "30px 40px 32px", display: "inline-block", maxWidth: "820px" });
+      const h = el("div", "serif", esc(par("titel", "Kalender checken")), k); h.style.fontSize = "76px";
+      const u = par("unter", "5 Minuten");
+      const s = u ? el("div", null, esc(u), k) : null;
+      if (s) Object.assign(s.style, { fontSize: "36px", fontWeight: 500, marginTop: "12px", color: k.classList.contains("navy") ? "var(--on-navy-soft)" : "var(--ink-soft)" });
+      Object.assign(wrap.style, { display: "flex", flexDirection: "column", alignItems: "flex-start" });
+      this.e = e; this.k = k; this.h = h; this.s = s;
+    },
+    frame(t, dur) {
+      const o = raus(t, dur, .35);
+      const pe = easeBack(seg(t, 0, .4));
+      this.e.style.transform = `translateX(${(1 - pe) * -340}px)`; this.e.style.opacity = seg(t, 0, .15) * (1 - o);
+      const pk = easeOut(seg(t, .15, .6));
+      this.k.style.clipPath = `inset(0 ${100 - pk * 100}% 0 0 round 12px)`;
+      this.k.style.opacity = 1 - o; this.k.style.transform = `translateX(${-40 * o}px)`;
+      this.h.style.transform = `translateX(${(1 - easeOut(seg(t, .3, .75))) * -30}px)`;
+      if (this.s) this.s.style.opacity = seg(t, .5, .8);
+    },
+  },
+
+  // 3) Zahl-Badge mit Ring (z. B. 30 Minuten, 3 Säulen, 5 Posts)
+  zahl: {
+    dauer: () => +par("dauer", 4),
+    bauen() {
+      const d = 380, r = 168;
+      const k = el("div", "karte", null, buehne);
+      Object.assign(k.style, { width: d + "px", height: d + "px", borderRadius: "50%", left: (1080 - d) / 2 - 40 + "px", top: "420px", display: "grid", placeItems: "center" });
+      k.innerHTML = `<svg width="${d}" height="${d}" style="position:absolute;inset:0;transform:rotate(-90deg)">
+        <circle cx="${d / 2}" cy="${d / 2}" r="${r}" fill="none" stroke="var(--line)" stroke-width="10"/>
+        <circle class="bogen" cx="${d / 2}" cy="${d / 2}" r="${r}" fill="none" stroke="var(--rot)" stroke-width="10" stroke-linecap="round"/></svg>
+        <div style="text-align:center;position:relative"><div class="serif n" style="font-size:150px;line-height:1"></div>
+        <div class="label u" style="font-size:28px;margin-top:6px;color:var(--ink-soft)">${esc(par("einheit", "Minuten"))}</div></div>`;
+      this.k = k; this.b = k.querySelector(".bogen"); this.n = k.querySelector(".n"); this.u = k.querySelector(".u");
+      this.umfang = 2 * Math.PI * r; this.b.style.strokeDasharray = this.umfang;
+      this.ziel = +par("zahl", 30); this.vorsatz = par("vorsatz", "");
+    },
+    frame(t, dur) {
+      const o = raus(t, dur);
+      const pin = easeBack(seg(t, 0, .45));
+      this.k.style.transform = `scale(${(.6 + .4 * pin) * (1 - .15 * o)})`; this.k.style.opacity = seg(t, 0, .2) * (1 - o);
+      const p = easeInOut(seg(t, .3, 1.8));
+      this.b.style.strokeDashoffset = this.umfang * (1 - p);
+      this.n.textContent = this.vorsatz + Math.round(this.ziel * p);
+      this.u.style.opacity = seg(t, .4, .7);
+    },
+  },
+
+  // 4) Checkliste, Punkte werden nacheinander abgehakt
+  checkliste: {
+    dauer() { return +par("dauer", 1.2 + this.items().length * .8 + 1.6); },
+    items: () => par("punkte", "Kalender checken|Themen verteilen|Format festlegen|Alles eintragen").split("|"),
+    bauen() {
+      const k = el("div", "karte", null, buehne);
+      Object.assign(k.style, { left: "72px", right: "160px", top: "380px", padding: "52px 60px 56px" });
+      const lab = el("div", "label", esc(par("label", "Dein Ablauf")), k); lab.style.marginBottom = "18px";
+      const h = el("div", "serif", esc(par("titel", "30 Minuten, 4 Schritte")), k); Object.assign(h.style, { fontSize: "64px", marginBottom: "34px" });
+      this.zeilen = this.items().map((txt) => {
+        const z = el("div", null, null, k);
+        Object.assign(z.style, { display: "flex", alignItems: "center", gap: "28px", padding: "20px 0", borderTop: "2px solid var(--line)", fontSize: "44px", fontWeight: 500 });
+        z.innerHTML = `<svg width="56" height="56" viewBox="0 0 56 56" style="flex:none"><rect x="3" y="3" width="50" height="50" rx="8" fill="none" stroke="var(--navy)" stroke-width="4"/>
+          <path class="haken" d="M14 29 L24 39 L43 17" fill="none" stroke="var(--rot)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"/></svg><span>${esc(txt)}</span>`;
+        return { z, h: z.querySelector(".haken"), s: z.querySelector("span") };
+      });
+      this.k = k; this.lab = lab; this.ti = h;
+    },
+    frame(t, dur) {
+      const o = raus(t, dur);
+      const p = easeOut(seg(t, 0, .45));
+      this.k.style.opacity = seg(t, 0, .2) * (1 - o); this.k.style.transform = `translateY(${(1 - p) * 80 - o * 60}px)`;
+      this.ti.style.opacity = seg(t, .15, .45);
+      this.zeilen.forEach((z, i) => {
+        const a = .5 + i * .22, c = 1.2 + i * .8;
+        const pz = easeOut(seg(t, a, a + .35));
+        z.z.style.opacity = pz; z.z.style.transform = `translateX(${(1 - pz) * 40}px)`;
+        z.h.style.strokeDashoffset = 1 - easeOut(seg(t, c, c + .35));
+        z.s.style.color = t > c + .3 ? "var(--ink-soft)" : "var(--navy)";
+      });
+    },
+  },
+
+  // 5) Handgezeichneter Kreis (auf Kalender, Wochenplaner, Bildschirm)
+  kreis: {
+    dauer: () => +par("dauer", 3),
+    bauen() {
+      const w = +par("breite", 520), h = +par("hoehe", 300);
+      const wrap = el("div", null, null, buehne);
+      Object.assign(wrap.style, { position: "absolute", left: (1080 - w) / 2 - 40 + "px", top: par("oben", "760") + "px", width: w + "px", height: h + "px" });
+      // leicht unregelmäßige Ellipse, die sich am Ende überlappt (wie mit dem Stift gezogen)
+      const pts = []; const n = 64;
+      for (let i = 0; i <= n * 1.12; i++) {
+        const a = -Math.PI * .6 + (i / n) * Math.PI * 2;
+        const wob = 1 + .035 * Math.sin(i * .5) + .02 * Math.sin(i * 1.3);
+        const rx = (w / 2) * wob * (1 + i / n * .03), ry = (h / 2) * wob;
+        pts.push([w / 2 + rx * Math.cos(a), h / 2 + ry * Math.sin(a)]);
+      }
+      const d = "M" + pts.map((p) => p.map((v) => v.toFixed(1)).join(" ")).join(" L");
+      wrap.innerHTML = `<svg width="${w}" height="${h}"><path d="${d}" fill="none" stroke="var(--rot)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"/></svg>`;
+      this.pfad = wrap.querySelector("path"); this.wrap = wrap;
+      const txt = par("text", "Mo · Mi · Fr");
+      if (txt) {
+        const e = el("div", "etikett", esc(txt), wrap);
+        Object.assign(e.style, { position: "absolute", left: "50%", top: h + 34 + "px", fontSize: "34px", padding: "14px 24px", whiteSpace: "nowrap" });
+        this.e = e;
+      }
+    },
+    frame(t, dur) {
+      const o = raus(t, dur, .3);
+      this.pfad.style.strokeDashoffset = 1 - easeInOut(seg(t, 0, .7));
+      this.wrap.style.opacity = 1 - o;
+      if (this.e) { const p = easeBack(seg(t, .6, .95)); this.e.style.opacity = seg(t, .6, .75); this.e.style.transform = `translateX(-50%) translateY(${(1 - p) * 30}px)`; }
+    },
+  },
+
+  // 6) Textmarker: Satz mit hervorgehobenem Teil
+  textmarker: {
+    dauer: () => +par("dauer", 4),
+    bauen() {
+      const navy = par("flaeche", "navy") === "navy";
+      const k = el("div", "karte" + (navy ? " navy" : ""), null, buehne);
+      Object.assign(k.style, { left: "72px", right: "160px", top: "1060px", padding: "44px 56px 50px" });
+      const lab = par("label", "Recht im Alltag");
+      if (lab) { const l = el("div", "label", esc(lab), k); l.style.marginBottom = "20px"; }
+      const h = el("div", "serif", null, k); Object.assign(h.style, { fontSize: "66px", fontWeight: 400, lineHeight: 1.2 });
+      const text = par("text", "Wer geschäftlich postet, *braucht ein Impressum.*");
+      text.split(/(\*[^*]+\*)/).filter(Boolean).forEach((teil) => {
+        if (teil.startsWith("*")) {
+          const m = el("span", null, esc(teil.slice(1, -1)), h);
+          Object.assign(m.style, { fontWeight: 600, backgroundImage: `linear-gradient(${navy ? "rgba(200,86,106,.55)" : "rgba(122,31,43,.22)"},${navy ? "rgba(200,86,106,.55)" : "rgba(122,31,43,.22)"})`, backgroundRepeat: "no-repeat", backgroundPosition: "0 88%", boxDecorationBreak: "clone", WebkitBoxDecorationBreak: "clone", padding: "0 6px" });
+          this.m = m;
+        } else h.appendChild(document.createTextNode(teil));
+      });
+      this.k = k;
+    },
+    frame(t, dur) {
+      const o = raus(t, dur);
+      const p = easeOut(seg(t, 0, .45));
+      this.k.style.opacity = seg(t, 0, .2) * (1 - o); this.k.style.transform = `translateY(${(1 - p) * 60}px)`;
+      if (this.m) this.m.style.backgroundSize = `${easeInOut(seg(t, .55, 1.25)) * 100}% 48%`;
+    },
+  },
+
+  // 7) Rechtshinweis unten (für alle Recht-Reels)
+  hinweis: {
+    dauer: () => +par("dauer", 10),
+    bauen() {
+      const k = el("div", "karte navy", null, buehne);
+      Object.assign(k.style, { left: "72px", right: "160px", top: "1330px", padding: "22px 28px", display: "flex", alignItems: "center", gap: "22px", boxShadow: "0 10px 30px rgba(12,17,32,.3)" });
+      const laender = par("laender", "AT|DE").split("|").filter(Boolean);
+      const chips = el("div", null, laender.map((l) => `<span class="etikett" style="font-size:24px;padding:8px 12px;margin-right:8px">${esc(l)}</span>`).join(""), k);
+      chips.style.flex = "none";
+      const txt = el("div", null, `${esc(par("text", "Allgemeine Information, keine Rechtsberatung."))}<br><span style="color:var(--on-navy-soft)">Stand: ${esc(par("stand", "11/2026"))}</span>`, k);
+      Object.assign(txt.style, { fontSize: "30px", lineHeight: 1.35, fontWeight: 500 });
+      this.k = k;
+    },
+    frame(t, dur) {
+      const o = raus(t, dur);
+      const p = easeOut(seg(t, 0, .5));
+      this.k.style.opacity = seg(t, 0, .3) * (1 - o); this.k.style.transform = `translateY(${(1 - p) * 40 + o * 20}px)`;
+    },
+  },
+
+  // 8) AT vs. DE Vergleich
+  atde: {
+    dauer: () => +par("dauer", 6),
+    bauen() {
+      const k = el("div", "karte navy", null, buehne);
+      Object.assign(k.style, { left: "72px", right: "160px", top: "420px", padding: "50px 54px 54px" });
+      const l = el("div", "label", esc(par("label", "Impressum")), k); l.style.marginBottom = "16px";
+      const h = el("div", "serif", esc(par("titel", "Österreich und Deutschland")), k); Object.assign(h.style, { fontSize: "60px", marginBottom: "38px" });
+      const grid = el("div", null, null, k); Object.assign(grid.style, { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 36px" });
+      this.spalten = [["AT", par("at", "§ 5 ECG|plus Offenlegung nach § 25 MedienG")], ["DE", par("de", "§ 5 DDG|früher § 5 TMG")]].map(([land, txt], i) => {
+        const s = el("div", null, null, grid);
+        Object.assign(s.style, { borderTop: "3px solid var(--rot-hell)", paddingTop: "24px" });
+        const [eins, ...rest] = txt.split("|");
+        s.innerHTML = `<div class="etikett" style="font-size:28px;padding:8px 14px">${land}</div>
+          <div class="serif" style="font-size:52px;margin-top:22px">${esc(eins)}</div>
+          ${rest.map((r) => `<div style="font-size:32px;line-height:1.35;color:var(--on-navy-soft);margin-top:14px">${esc(r)}</div>`).join("")}`;
+        return s;
+      });
+      this.k = k; this.h = h;
+    },
+    frame(t, dur) {
+      const o = raus(t, dur);
+      const p = easeOut(seg(t, 0, .45));
+      this.k.style.clipPath = `inset(0 0 ${100 - p * 100}% 0 round 12px)`; this.k.style.opacity = 1 - o;
+      this.k.style.transform = `translateY(${-50 * o}px)`;
+      this.h.style.opacity = seg(t, .2, .5);
+      this.spalten.forEach((s, i) => { const q = easeOut(seg(t, .5 + i * .25, .95 + i * .25)); s.style.opacity = q; s.style.transform = `translateY(${(1 - q) * 40}px)`; });
+    },
+  },
+
+  // 9) Mythos: Aussage wird durchgestrichen, Richtigstellung erscheint
+  mythos: {
+    dauer: () => +par("dauer", 4.5),
+    bauen() {
+      const k = el("div", "karte", null, buehne);
+      Object.assign(k.style, { left: "72px", right: "160px", top: "460px", padding: "52px 60px 58px" });
+      const l = el("div", "etikett", esc(par("label", "Mythos")), k); Object.assign(l.style, { fontSize: "28px", padding: "10px 18px", marginBottom: "30px" });
+      const h = el("div", "serif", null, k); Object.assign(h.style, { fontSize: "84px", color: "var(--ink-soft)" });
+      // Durchstreichen als Hintergrund-Linie, damit es auch über zwei Zeilen funktioniert
+      const s = el("span", null, esc(par("aussage", "Du musst jeden Tag posten.")), h);
+      Object.assign(s.style, { backgroundImage: "linear-gradient(var(--rot),var(--rot))", backgroundRepeat: "no-repeat", backgroundPosition: "0 58%", boxDecorationBreak: "clone", WebkitBoxDecorationBreak: "clone" });
+      const a = el("div", "serif", esc(par("antwort", "Ein fester Rhythmus reicht.")), k); Object.assign(a.style, { fontSize: "62px", marginTop: "34px", color: "var(--navy)" });
+      this.k = k; this.l = l; this.h = h; this.s = s; this.a = a;
+    },
+    frame(t, dur) {
+      const o = raus(t, dur);
+      const p = easeOut(seg(t, 0, .45));
+      this.k.style.opacity = seg(t, 0, .2) * (1 - o); this.k.style.transform = `translateY(${(1 - p) * 70 - o * 50}px)`;
+      const st = easeBack(seg(t, .2, .5)); this.l.style.transform = `scale(${.5 + .5 * st}) rotate(${(1 - st) * -8}deg)`; this.l.style.opacity = seg(t, .2, .3);
+      this.s.style.backgroundSize = `${easeInOut(seg(t, 1.1, 1.5)) * 100}% 9px`;
+      const q = easeOut(seg(t, 1.6, 2.05)); this.a.style.opacity = q; this.a.style.transform = `translateY(${(1 - q) * 30}px)`;
+    },
+  },
+
+  // 10) Übergang: Navy-Wischblende mit Monogramm (Schnitt bei 0,4 s)
+  uebergang: {
+    dauer: () => +par("dauer", .8),
+    bauen() {
+      const f = el("div", null, null, buehne);
+      Object.assign(f.style, { position: "absolute", inset: "-200px", background: "var(--navy)" });
+      const kante = el("div", null, null, f); Object.assign(kante.style, { position: "absolute", top: 0, bottom: 0, right: "-14px", width: "14px", background: "var(--rot)" });
+      const kante2 = el("div", null, null, f); Object.assign(kante2.style, { position: "absolute", top: 0, bottom: 0, left: "-14px", width: "14px", background: "var(--rot)" });
+      const m = el("div", "mono", "CJ", buehne); Object.assign(m.style, { position: "absolute", width: "200px", height: "200px", left: "440px", top: "860px", fontSize: "84px" });
+      this.f = f; this.m = m;
+    },
+    frame(t, dur) {
+      const mitte = dur / 2;
+      const ein = easeInOut(seg(t, 0, mitte * .85)), aus = easeInOut(seg(t, mitte * 1.15, dur));
+      const x = t < mitte ? (1 - ein) * -1500 : aus * 1500;
+      this.f.style.transform = `translateX(${x}px) skewX(-8deg)`;
+      const mp = 1 - Math.abs(t - mitte) / (mitte * .55);
+      this.m.style.opacity = clamp(mp * 1.6); this.m.style.transform = `scale(${.85 + .15 * clamp(mp)})`;
+    },
+  },
+
+  // 11) Endcard: Speichern / Folgen
+  endcard: {
+    dauer: () => +par("dauer", 4.5),
+    bauen() {
+      const k = el("div", "karte", null, buehne);
+      Object.assign(k.style, { left: "72px", right: "160px", top: "560px", padding: "60px 60px 56px", textAlign: "center" });
+      const m = el("div", "mono", "CJ", k); Object.assign(m.style, { width: "150px", height: "150px", fontSize: "62px", margin: "0 auto 34px" });
+      const h = el("div", "serif", null, k); h.style.fontSize = "82px";
+      const w = woerter(par("titel", "*Speicher* dir das für den Monatsanfang."), h);
+      const u = el("div", null, esc(par("unter", "Die ausführliche Anleitung steht im Blog, Link im Profil.")), k);
+      Object.assign(u.style, { fontSize: "38px", lineHeight: 1.35, color: "var(--ink-soft)", marginTop: "28px", fontWeight: 400 });
+      const hd = el("div", "label", esc(par("handle", "@die.contentjuristin")), k);
+      Object.assign(hd.style, { marginTop: "38px", paddingTop: "30px", borderTop: "2px solid var(--line)", textTransform: "none", letterSpacing: ".02em", fontSize: "36px" });
+      this.k = k; this.m = m; this.w = w.spans; this.st = w.striche; this.u = u; this.hd = hd;
+    },
+    frame(t, dur) {
+      const o = raus(t, dur, .5);
+      const p = easeOut(seg(t, 0, .5));
+      this.k.style.opacity = seg(t, 0, .25) * (1 - o); this.k.style.transform = `translateY(${(1 - p) * 90}px) scale(${1 - .05 * o})`;
+      const mp = easeBack(seg(t, .2, .6)); this.m.style.transform = `scale(${mp})`;
+      this.w.forEach((w, i) => { const q = easeOut(seg(t, .45 + i * .07, .8 + i * .07)); w.style.opacity = q; w.style.transform = `translateY(${(1 - q) * 40}px)`; });
+      const s0 = .55 + this.w.length * .07;
+      this.st.forEach((s) => (s.style.transform = `scaleX(${easeInOut(seg(t, s0, s0 + .4))})`));
+      this.u.style.opacity = seg(t, s0 + .2, s0 + .5); this.hd.style.opacity = seg(t, s0 + .4, s0 + .7);
+    },
+  },
+};
+
+// ---------- Start ----------
+const name = par("o", "hook");
+const ov = OVERLAYS[name];
+if (!ov) throw new Error("Unbekanntes Overlay: " + name);
+window.OVERLAY_NAMEN = Object.keys(OVERLAYS);
+
+window.bereit = document.fonts.load('600 40px "Source Serif 4"')
+  .then(() => Promise.all(['400 40px "Source Serif 4"', '400 40px Inter', '500 40px Inter', '600 40px Inter'].map((f) => document.fonts.load(f))))
+  .then(() => {
+    ov.bauen();
+    window.DAUER = ov.dauer();
+    window.zeige = (t) => ov.frame(t, window.DAUER);
+    window.zeige(0);
+    return window.DAUER;
+  });
+
+if (P.has("vorschau")) {
+  document.body.classList.add("vorschau");
+  [[0, 250], [1440, 480]].forEach(([top, h]) => { const z = el("div", "zone", null, document.body); z.style.top = top + "px"; z.style.height = h + "px"; });
+  const z = el("div", "zone", null, document.body); Object.assign(z.style, { left: "auto", width: "140px", top: "250px", height: "1190px" });
+  window.bereit.then((d) => { const t0 = performance.now(); const loop = (n) => { window.zeige(((n - t0) / 1000) % (d + .8)); requestAnimationFrame(loop); }; requestAnimationFrame(loop); });
+}
+</script>
+</body>
+</html>
