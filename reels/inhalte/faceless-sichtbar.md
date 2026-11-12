@@ -1,0 +1,25 @@
+---
+format: liste
+stil: "poster"
+saeule: "Strategie"
+hook: "Du willst nicht vor die Kamera? *Musst du auch nicht.*"
+unterzeile: "5 Wege, ohne Gesicht Vertrauen aufzubauen."
+punkte:
+  - zusatz: "Zeig"
+    titel: "Deine Hände bei der Arbeit"
+    text: "Zeig, *wie* du arbeitest. Das beweist Können, ohne dass du ins Bild musst."
+  - zusatz: "Zeig"
+    titel: "Deinen Arbeitsplatz"
+    text: "Schreibtisch, Werkzeug, Atelier: Der Ort erzählt, wer du bist."
+  - zusatz: "Sprich"
+    titel: "Mit deiner Stimme"
+    text: "Ein Voiceover macht dich *nahbar*, auch ganz ohne Gesicht."
+  - zusatz: "Erklär"
+    titel: "Am Bildschirm"
+    text: "Bildschirmaufnahmen zeigen Abläufe Schritt für Schritt."
+  - zusatz: "Beweis"
+    titel: "Mit deinen Ergebnissen"
+    text: "Vorher und nachher sagt mehr als jede Beschreibung. Bei Kundenfotos vorher fragen."
+cta: "Dieses Reel? Nur Text. Auch das *zählt*."
+cta_klein: "Welche Idee probierst du zuerst?"
+---
