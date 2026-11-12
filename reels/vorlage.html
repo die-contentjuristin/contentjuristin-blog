@@ -25,7 +25,7 @@
   --serif:"Source Serif 4",Georgia,serif; --sans:Inter,system-ui,sans-serif;
 }
 body.navy{
-  --bg:var(--navy); --ink:var(--paper); --leise:#C3C5CD; --akzent:#DD6071; --kicker:#DD6071;
+  --bg:var(--navy); --ink:var(--paper); --leise:#C3C5CD; --akzent:var(--rot); --kicker:var(--rot);
   --karte:var(--paper); --karte-ink:var(--navy); --karte-rand:var(--paper);
   --gut:var(--paper); --gut-ink:var(--navy); --linie:var(--rot); --spur:#2E3854;
 }
@@ -33,8 +33,10 @@ body.navy{
 html,body{width:1080px;height:1920px;overflow:hidden}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;position:relative}
 em{font-style:normal;color:var(--rot)}
-body.navy em{color:#DD6071}
-body.navy .karte em,body.navy .liste-box em{color:var(--rot)}
+body.navy em{color:var(--paper);background:var(--rot);padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+/* Auf Navy wäre dunkelroter Text kaum lesbar: Zwischenzeilen werden zur dunkelroten Box, wie das Etikett */
+body.navy .kicker:not(.nummer .kicker):not(.vergleich .kicker){align-self:flex-start;background:var(--rot);color:var(--paper);padding:6px 14px}
+body.navy .karte em,body.navy .liste-box em{color:var(--rot);background:none;padding:0}
 
 /* Rahmen. Oben, unten und rechts überdeckt Instagram das Video mit Bedienelementen, deshalb der Abstand */
 .kopf{position:absolute;left:108px;right:108px;top:240px;display:flex;justify-content:space-between;font-size:34px;font-weight:400}
@@ -88,7 +90,7 @@ body.navy .etikett{background:var(--rot);color:var(--paper);letter-spacing:.02em
 .blase{max-width:88%;font-size:calc(var(--s,1)*46px);line-height:1.4;padding:30px 40px;border-radius:30px}
 .blase.frage{background:var(--karte);color:var(--karte-ink);border:2px solid var(--karte-rand);border-bottom-left-radius:8px;align-self:flex-start;font-family:var(--serif);font-size:calc(var(--s,1)*52px);line-height:1.25}
 .blase.antwort{background:var(--rot);color:var(--weiss);border-bottom-right-radius:8px;align-self:flex-end}
-.blase.antwort em{color:inherit;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:8px}
+.blase.antwort em{color:inherit;background:none;padding:0;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:8px}
 .tippen{align-self:flex-end;display:flex;gap:12px;padding:32px 40px;border-radius:30px;border-bottom-right-radius:8px;background:var(--rot)}
 .tippen i{width:16px;height:16px;border-radius:50%;background:var(--weiss);display:block}
 
@@ -107,9 +109,9 @@ body.navy .etikett{background:var(--rot);color:var(--paper);letter-spacing:.02em
 <body>
 <script>
 "use strict";
-const LESEN_PRO_WORT = 0.32;   // Sekunden pro Wort
-const EIN = 0.45;              // Dauer einer Einblendung
-const AUS = 0.3;               // Ausblenden am Szenenende
+const LESEN_PRO_WORT = 0.2;    // Sekunden pro Wort
+const EIN = 0.28;              // Dauer einer Einblendung
+const AUS = 0.15;              // Ausblenden am Szenenende
 
 const ICON = {
   nein: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4"><circle cx="32" cy="32" r="29"/><path d="M22 22l20 20M42 22L22 42" stroke-width="7" stroke-linecap="round"/></svg>',
@@ -128,7 +130,7 @@ const fmt = (s) => esc(s)
   .replace(/\*(.+?)\*/g, "<em>$1</em>");
 const zitat = (s) => `„${fmt(String(s ?? "").replace(/^[„"“]+|[“"”]+$/g, ""))}“`;
 const woerter = (s) => String(s ?? "").trim().split(/\s+/).filter(Boolean).length;
-const lesen = (...texte) => Math.max(1.4, 0.6 + woerter(texte.join(" ")) * LESEN_PRO_WORT);
+const lesen = (...texte) => Math.max(1.0, 0.3 + woerter(texte.join(" ")) * LESEN_PRO_WORT);
 const clamp = (x) => Math.min(1, Math.max(0, x));
 const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 const easeBack = (x) => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
@@ -159,7 +161,7 @@ function hookSzene(d) {
   if (d.zahl) s.add(el("p", "zahl", esc(d.zahl)), 0, "sofort");
   s.add(el("h1", "hook" + (d.zahl ? " mit-zahl" : ""), fmt(d.hook)), 0, "sofort");
   if (d.unterzeile) s.add(el("p", "unterzeile", fmt(d.unterzeile)), 0, "sofort");
-  s.dauer = Math.max(2.6, lesen(d.hook, d.unterzeile) + 0.5);
+  s.dauer = Math.max(1.8, lesen(d.hook, d.unterzeile) + 0.2);
   return s;
 }
 
@@ -169,10 +171,10 @@ const FORMATE = {
       const s = szene();
       s.add(nummer(i + 1, p.kicker || (i === 0 ? d.erster_kicker : null) || d.kicker || "Mythos"), 0);
       s.add(el("p", "karte zitat", zitat(p.mythos)), 0.15);
-      const ab = 0.15 + lesen(p.mythos);
+      const ab = 0.1 + lesen(p.mythos) * 0.8;
       s.add(el("p", "kicker", fmt(d.warum_titel || "Warum das nicht stimmt")), ab);
-      s.add(el("p", "text", fmt(p.fakt)), ab + 0.15);
-      s.dauer = ab + 0.15 + lesen(p.fakt) + 0.7;
+      s.add(el("p", "text", fmt(p.fakt)), ab + 0.1);
+      s.dauer = ab + 0.1 + lesen(p.fakt) + 0.3;
     });
   },
 
@@ -181,8 +183,8 @@ const FORMATE = {
       const s = szene();
       s.add(nummer(i + 1, p.zusatz), 0);
       s.add(el("h2", "titel", fmt(p.titel)), 0.2);
-      if (p.text) s.add(el("p", "text", fmt(p.text)), 0.2 + Math.min(1.2, lesen(p.titel) * 0.6));
-      s.dauer = 0.6 + lesen(p.titel, p.text) + 0.5;
+      if (p.text) s.add(el("p", "text", fmt(p.text)), 0.15 + Math.min(0.6, lesen(p.titel) * 0.4));
+      s.dauer = 0.3 + lesen(p.titel, p.text) + 0.2;
     });
   },
 
@@ -191,9 +193,9 @@ const FORMATE = {
       const s = szene();
       if (p.titel) s.add(el("h2", "titel", fmt(p.titel)), 0);
       s.add(el("div", "vergleich nicht", `${ICON.nein}<div><p class="kicker">${fmt(d.nicht_titel || "So nicht")}</p><p>${zitat(p.nicht)}</p></div>`), 0.2);
-      const ab = 0.2 + lesen(p.titel, p.nicht);
+      const ab = 0.15 + lesen(p.titel, p.nicht) * 0.85;
       s.add(el("div", "vergleich schon", `${ICON.ja}<div><p class="kicker">${fmt(d.schon_titel || "So schon")}</p><p>${zitat(p.schon)}</p></div>`), ab);
-      s.dauer = ab + lesen(p.schon) + 0.7;
+      s.dauer = ab + lesen(p.schon) + 0.3;
     });
   },
 
@@ -205,20 +207,20 @@ const FORMATE = {
     fenster.appendChild(spalte); s.el.appendChild(fenster);
     s.teile.push({ node: fenster, ab: 0, art: "sofort" });
     s.add(el("p", "blase frage", zitat(d.frage)), 0.2, "blase", spalte);
-    let t = 0.2 + lesen(d.frage);
+    let t = 0.15 + lesen(d.frage) * 0.85;
     d.antworten.forEach((a) => {
       const tipp = el("div", "tippen", "<i></i><i></i><i></i>");
       spalte.appendChild(tipp);
       const start = t;
-      t += 0.8;
+      t += 0.4;
       s.add(el("p", "blase antwort", fmt(a)), t, "blase", spalte);
       s.extra.push((lokal) => {
-        tipp.style.display = lokal >= start && lokal < start + 0.8 ? "flex" : "none";
+        tipp.style.display = lokal >= start && lokal < start + 0.4 ? "flex" : "none";
         [...tipp.children].forEach((punkt, k) => {
           punkt.style.transform = `translateY(${-10 * Math.max(0, Math.sin((lokal - start) * 9 - k * 0.9))}px)`;
         });
       });
-      t += lesen(a);
+      t += lesen(a) * 0.9;
     });
     // Wenn die Blasen nicht mehr ins Fenster passen, rutscht der Chat sanft nach oben
     s.extra.push((lokal) => {
@@ -233,7 +235,7 @@ const FORMATE = {
       }
       spalte.style.transform = `translateY(${-schub}px)`;
     });
-    s.dauer = t + 1.0;
+    s.dauer = t + 0.5;
   },
 
   "darf-ich"(d) {
@@ -243,10 +245,10 @@ const FORMATE = {
       s.add(nummer(i + 1, d.ueberschrift || "Darf ich …"), 0);
       s.add(el("h2", "titel", fmt(f.frage)), 0.15);
       const u = URTEIL[String(f.antwort).toLowerCase().trim()];
-      const ab = 0.15 + lesen(f.frage) + 0.3;
+      const ab = 0.1 + lesen(f.frage) * 0.85;
       s.add(el("p", "urteil " + u[0], `${ICON[u[0]]}<span>${u[1]}</span>`), ab, "stempel");
-      if (f.warum) s.add(el("p", "text", fmt(f.warum)), ab + 0.5);
-      s.dauer = ab + 0.5 + lesen(f.warum || "") + 0.6;
+      if (f.warum) s.add(el("p", "text", fmt(f.warum)), ab + 0.3);
+      s.dauer = ab + 0.3 + lesen(f.warum || "") + 0.3;
     });
   },
 
@@ -254,7 +256,7 @@ const FORMATE = {
     d.aussagen.forEach((a) => {
       const s = szene();
       s.add(el("p", "gross", fmt(a)), 0.1);
-      s.dauer = lesen(a) + 0.8;
+      s.dauer = lesen(a) + 0.3;
     });
   },
 };
@@ -266,15 +268,15 @@ function kurzSzene(d) {
   s.add(el("h2", "titel", fmt(d.kurz_titel || "Zum Mitnehmen")), 0.1);
   const box = s.add(el("div", "liste-box"), 0.25);
   d.kurz.forEach((k, i) => box.appendChild(el("div", "", `<b>${i + 1}</b><span>${fmt(k)}</span>`)));
-  s.dauer = lesen(d.kurz_titel || "", ...d.kurz) + 1.0;
+  s.dauer = lesen(d.kurz_titel || "", ...d.kurz) * 0.85 + 0.4;
 }
 
 function schlussSzene(d) {
   const s = szene("schluss");
   s.add(el("p", "gross", fmt(d.cta || "Speichern für später.")), 0);
-  if (d.cta_klein) s.add(el("p", "text", fmt(d.cta_klein)), 0.3);
-  s.add(el("div", "abschluss", `<div class="wer"><div class="mono">CJ</div><span>${fmt(d.folgen || "Folgen für mehr")}</span></div><span class="knopf">${fmt(d.knopf || "Speichern")}</span>`), 0.6);
-  s.dauer = Math.max(3.4, lesen(d.cta, d.cta_klein) + 1.4);
+  if (d.cta_klein) s.add(el("p", "text", fmt(d.cta_klein)), 0.15);
+  s.add(el("div", "abschluss", `<div class="wer"><div class="mono">CJ</div><span>${fmt(d.folgen || "Folgen für mehr")}</span></div><span class="knopf">${fmt(d.knopf || "Speichern")}</span>`), 0.3);
+  s.dauer = Math.max(2.4, lesen(d.cta, d.cta_klein) + 0.8);
   s.letzte = true;
 }
 
@@ -310,7 +312,7 @@ window.bauen = async function (d) {
   await document.fonts.ready;
   let t = 0;
   for (const s of szenen) {
-    if (s.dauer < 1.4) s.dauer = 1.4;
+    if (s.dauer < 1.0) s.dauer = 1.0;
     s.start = t; t += s.dauer;
     einpassen(s);
   }

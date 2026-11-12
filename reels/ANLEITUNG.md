@@ -49,7 +49,7 @@ Tipp: Eine Datei, deren Name mit `_` beginnt (z. B. `_entwurf-musik.md`), wird �
 - **Ein Wort hervorheben** mit Sternchen: `*Impressum*`. Mehr als eins pro Satz verwässert den Effekt.
 - **Texte immer in Anführungszeichen** `"…"`, vor allem wenn ein Doppelpunkt vorkommt.
 - **Recht im Alltag:** `stand` immer ausfüllen, Quellen in die Caption oder in den Blogartikel.
-- Die Anzeigedauer berechnet sich automatisch aus der Wortanzahl. Ideal sind 15 bis 35 Sekunden.
+- Die Anzeigedauer berechnet sich automatisch aus der Wortanzahl. Ideal sind 12 bis 25 Sekunden.
 - Zu viel Text? Die Schrift wird automatisch kleiner. Wenn sie sichtbar klein wird: kürzen.
 
 ## Posten auf Instagram
