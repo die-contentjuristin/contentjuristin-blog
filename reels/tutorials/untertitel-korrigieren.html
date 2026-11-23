@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="de-AT">
+<head>
+<meta charset="utf-8">
+<title>Untertitel korrigieren</title>
+<!--
+  Tutorial-Video „Untertitel automatisch erstellen und ein Wort korrigieren“ (24.12.), 1080 × 1920, ca. 21 s.
+  Ein Handy-Bildschirm zeigt die Schritte, ohne Ton: zum Drübersprechen.
+  render.mjs ruft window.zeige(sekunde) für jedes Bild auf. ?ohne=1 blendet Hook, Schritt-Titel und Schluss aus.
+  Die App-Oberfläche ist bewusst neutral gehalten (keine echte App nachgebaut), damit es für CapCut, Edits & Co. passt.
+-->
+<style>
+@font-face{font-family:"Source Serif 4";font-weight:400;src:url("../../src/fonts/source-serif-4-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Source Serif 4";font-weight:600;src:url("../../src/fonts/source-serif-4-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:400;src:url("../../src/fonts/inter-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;src:url("../../src/fonts/inter-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;src:url("../../src/fonts/inter-latin-600-normal.woff2") format("woff2")}
+:root{--navy:#1B2440;--paper:#F5F6F8;--rot:#7A1F2B;--weiss:#fff;--leise:#5A6278;
+  --serif:"Source Serif 4",Georgia,serif;--sans:Inter,system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden}
+body{background:var(--paper);color:var(--navy);font-family:var(--sans);-webkit-font-smoothing:antialiased;position:relative}
+em{font-style:normal;color:var(--rot);background:linear-gradient(var(--rot),var(--rot)) no-repeat 0 96%/var(--m,100%) .09em}
+.abs{position:absolute}
+
+/* Kopf: bleibt die ganze Zeit (oben 250 px frei für Instagram) */
+.kopf{left:108px;right:160px;top:250px;display:flex;justify-content:space-between;font-size:32px;color:var(--leise)}
+.kopf b{font-weight:600;color:var(--rot);letter-spacing:.06em;text-transform:uppercase;font-size:28px}
+
+/* Schritt-Titel über dem Handy */
+.schritt{left:108px;right:160px;top:300px;height:140px}
+.schritt .nr{font-size:28px;font-weight:600;color:var(--rot);letter-spacing:.06em;text-transform:uppercase}
+.schritt .titel{font-family:var(--serif);font-weight:600;font-size:48px;line-height:1.1;margin-top:8px}
+
+/* Hook und Schluss */
+.gross{left:108px;right:160px;top:560px;font-family:var(--serif);font-weight:600;font-size:104px;line-height:1.06}
+.gross .klein{display:block;font-family:var(--sans);font-weight:400;font-size:40px;line-height:1.35;color:var(--leise);margin-top:44px}
+.gross .kick{display:block;font-family:var(--sans);font-size:30px;font-weight:600;color:var(--rot);letter-spacing:.06em;text-transform:uppercase;margin-bottom:28px}
+
+/* Handy */
+.handy{left:290px;top:470px;transform-origin:50% 0;width:500px;height:980px;border-radius:72px;background:#0E1222;padding:16px;box-shadow:0 40px 90px rgba(27,36,64,.28),inset 0 0 0 3px #2A3150}
+.screen{position:relative;width:100%;height:100%;border-radius:58px;overflow:hidden;background:#000}
+.notch{left:50%;top:14px;width:120px;height:32px;margin-left:-60px;border-radius:20px;background:#000;z-index:20}
+.ansicht{inset:0;visibility:hidden}
+
+/* Kamera */
+.kamera{background:linear-gradient(#56607A,#2B3248)}
+.person{left:50%;top:250px;margin-left:-150px;width:300px;height:520px}
+.rec{left:0;right:0;top:66px;display:flex;justify-content:center;gap:12px;align-items:center;color:#fff;font-size:24px;font-weight:500;font-variant-numeric:tabular-nums}
+.rec i{width:16px;height:16px;border-radius:50%;background:#E0343F;display:block}
+.ausloeser{left:50%;bottom:60px;width:110px;height:110px;margin-left:-55px;border-radius:50%;border:7px solid #fff;display:flex;align-items:center;justify-content:center}
+.ausloeser i{width:76px;height:76px;border-radius:50%;background:#E0343F;display:block}
+.sprech{left:28px;right:28px;top:560px;background:#fff;color:var(--navy);border-radius:28px;padding:22px 26px;font-size:30px;line-height:1.3;font-weight:500;box-shadow:0 14px 30px rgba(0,0,0,.25)}
+.sprech small{display:block;font-size:20px;color:var(--leise);font-weight:500;margin-bottom:6px}
+
+/* Schnitt-App (neutral) */
+.app{background:#15171C;color:#E9EAEE}
+.app .leiste{left:0;right:0;top:56px;height:60px;display:flex;justify-content:space-between;align-items:center;padding:0 30px;font-size:24px}
+.app .export{background:#fff;color:#15171C;font-weight:600;padding:8px 18px;border-radius:12px;font-size:20px}
+.vorschau{left:62px;right:62px;top:130px;height:520px;border-radius:14px;overflow:hidden;background:linear-gradient(#56607A,#2B3248)}
+.vorschau .person{top:70px;width:200px;height:347px;margin-left:-100px}
+.ut{left:14px;right:14px;bottom:44px;text-align:center;font-size:27px;font-weight:600;line-height:1.25;color:#fff;text-shadow:0 0 6px rgba(0,0,0,.9),0 2px 2px rgba(0,0,0,.9)}
+.ut span{border-radius:6px;padding:0 4px}
+.zeitleiste{left:0;right:0;top:680px;height:150px}
+.zeitleiste .kopflinie{left:50%;top:0;width:3px;height:150px;background:#fff;margin-left:-1px;z-index:3}
+.spur{left:0;height:56px;display:flex;gap:3px}
+.spur.video{top:18px}
+.spur.video i{display:block;width:70px;height:56px;border-radius:4px;background:linear-gradient(#56607A,#38405A)}
+.spur.text{top:88px;gap:6px}
+.chip{height:40px;border-radius:8px;background:#E9EAEE;color:#15171C;font-size:17px;font-weight:600;display:flex;align-items:center;padding:0 12px;white-space:nowrap}
+.werkzeuge{left:0;right:0;bottom:0;height:150px;background:#1D2027;display:flex;justify-content:space-around;align-items:center;padding:0 12px 26px}
+.wz{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:18px;color:#C9CBD2;width:80px}
+.wz .ic{width:46px;height:46px;border-radius:12px;border:3px solid #C9CBD2;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px}
+.wz.aktiv{color:#fff}.wz.aktiv .ic{border-color:#fff;background:#fff;color:#15171C}
+.panel{left:0;right:0;bottom:0;height:400px;background:#22252D;border-radius:30px 30px 0 0;padding:26px 26px;z-index:5}
+.panel h4{font-size:22px;font-weight:600;color:#9EA1AB;margin:0 0 16px 8px}
+.option{display:flex;align-items:center;gap:18px;height:78px;padding:0 18px;border-radius:16px;font-size:25px;font-weight:500;margin-bottom:8px;background:#2B2F38}
+.option .ic{width:42px;height:42px;border-radius:10px;background:#3A3F4B;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700}
+.option.hl{background:#fff;color:#15171C}.option.hl .ic{background:var(--rot);color:#fff}
+.laden{left:40px;right:40px;top:330px;background:#22252D;border-radius:24px;padding:30px;z-index:6;text-align:center;font-size:22px}
+.laden .balken{height:10px;background:#3A3F4B;border-radius:6px;margin-top:20px;overflow:hidden}
+.laden .balken i{display:block;height:100%;background:#fff;width:0}
+.laden .prozent{font-variant-numeric:tabular-nums;margin-top:12px;color:#9EA1AB;font-size:20px}
+
+/* Bearbeiten mit Tastatur */
+.edit{left:0;right:0;bottom:0;height:470px;background:#22252D;z-index:7;border-radius:26px 26px 0 0}
+.feld{left:22px;right:22px;top:22px;height:84px;background:#fff;color:#15171C;border-radius:14px;display:flex;align-items:center;padding:0 18px;font-size:24px;font-weight:500;white-space:nowrap;overflow:hidden}
+.feld .cursor{display:inline-block;width:3px;height:30px;background:var(--rot);vertical-align:middle;margin:0 1px}
+.feld .ok{margin-left:auto;width:52px;height:52px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;flex:none}
+.tasten{left:10px;right:10px;top:126px;display:flex;flex-direction:column;gap:12px}
+.reihe{display:flex;gap:7px;justify-content:center}
+.taste{width:40px;height:62px;border-radius:9px;background:#4A4F5B;color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center}
+.taste.breit{width:70px;font-size:20px}.taste.leer{width:230px}
+.taste.an{background:#fff;color:#15171C}
+
+/* Finger: weicher Punkt, der beim Tippen einen Ring wirft */
+.finger{width:74px;height:74px;margin:-37px 0 0 -37px;border-radius:50%;background:rgba(255,255,255,.55);border:4px solid rgba(255,255,255,.95);box-shadow:0 6px 18px rgba(0,0,0,.35);z-index:30;visibility:hidden}
+.ring{width:74px;height:74px;margin:-37px 0 0 -37px;border-radius:50%;border:5px solid #fff;z-index:29;visibility:hidden}
+
+/* Markierung des falschen Worts */
+.kreis{z-index:4;visibility:hidden;pointer-events:none}
+.haken{left:50%;top:170px;margin-left:-150px;width:300px;background:#fff;color:var(--navy);border-radius:40px;padding:14px 20px;font-size:23px;font-weight:600;text-align:center;z-index:8;visibility:hidden;box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.haken b{color:#1E7A4B}
+
+.ohne .weg{display:none!important}
+</style>
+</head>
+<body>
+<div class="abs kopf weg"><b>Adventskalender · 24.12.</b><span>@die.contentjuristin</span></div>
+
+<div class="abs schritt weg" id="schritt"><div class="nr" id="snr"></div><div class="titel" id="stitel"></div></div>
+
+<div class="abs gross weg" id="hook"><span class="kick">KI &amp; Tools</span>Automatische Untertitel <em>verhören</em> sich gern.<span class="klein">So korrigierst du ein Wort in 20 Sekunden.</span></div>
+<div class="abs gross weg" id="schluss" style="top:620px"><span class="kick">Vor dem Posten</span>Namen und Fachbegriffe <em>immer</em> gegenlesen.<span class="klein">Speichern für dein nächstes Reel.</span></div>
+
+<div class="abs handy" id="handy"><div class="screen" id="screen">
+  <div class="abs notch"></div>
+
+  <!-- Kamera -->
+  <div class="abs ansicht kamera" id="kamera">
+    <svg class="abs person" viewBox="0 0 300 520"><circle cx="150" cy="130" r="82" fill="#C9CDD8"/><path d="M10 520 C10 330 70 250 150 250 C230 250 290 330 290 520Z" fill="#C9CDD8"/></svg>
+    <div class="abs rec"><i id="recpunkt"></i><span id="rectime">00:00</span></div>
+    <div class="abs sprech" id="sprech"><small>🎙 du sagst</small><span id="sprechtext"></span></div>
+    <div class="abs ausloeser"><i id="ausl"></i></div>
+  </div>
+
+  <!-- Schnitt-App -->
+  <div class="abs ansicht app" id="app">
+    <div class="abs leiste"><span>✕</span><span style="font-size:20px;color:#9EA1AB">1080p</span><span class="export">Exportieren</span></div>
+    <div class="abs vorschau">
+      <svg class="abs person" viewBox="0 0 300 520"><circle cx="150" cy="130" r="82" fill="#C9CDD8"/><path d="M10 520 C10 330 70 250 150 250 C230 250 290 330 290 520Z" fill="#C9CDD8"/></svg>
+      <div class="abs ut" id="ut"></div>
+    </div>
+    <svg class="abs kreis" id="kreis" viewBox="0 0 220 90"><path d="M20 50 C18 18 90 8 150 12 C205 16 214 46 196 66 C176 86 70 88 34 74 C14 66 10 44 34 26" fill="none" stroke="#E0343F" stroke-width="6" stroke-linecap="round" id="kreispfad" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg>
+    <div class="abs haken" id="haken"><b>✓</b> korrigiert</div>
+    <div class="abs zeitleiste">
+      <div class="abs kopflinie"></div>
+      <div class="abs spur video" id="spurvideo"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="abs spur text" id="spurtext"><div class="chip">Das Impression</div><div class="chip">gehört in die Bio</div></div>
+    </div>
+    <div class="abs werkzeuge">
+      <div class="wz"><div class="ic">✂</div>Schnitt</div>
+      <div class="wz"><div class="ic">♪</div>Audio</div>
+      <div class="wz" id="wztext"><div class="ic">T</div>Text</div>
+      <div class="wz"><div class="ic">✦</div>Effekte</div>
+      <div class="wz"><div class="ic">◐</div>Filter</div>
+    </div>
+    <div class="abs panel" id="panel">
+      <h4>Text</h4>
+      <div class="option"><div class="ic">T</div>Text hinzufügen</div>
+      <div class="option" id="optauto"><div class="ic">CC</div>Automatische Untertitel</div>
+      <div class="option"><div class="ic">▤</div>Textvorlagen</div>
+    </div>
+    <div class="abs laden" id="laden">Untertitel werden erstellt …<div class="balken"><i id="ladebalken"></i></div><div class="prozent" id="prozent">0 %</div></div>
+    <div class="abs edit" id="edit">
+      <div class="abs feld"><span id="feldtext"></span><span class="ok" id="okknopf">✓</span></div>
+      <div class="abs tasten" id="tasten"></div>
+    </div>
+  </div>
+
+  <div class="abs ring" id="ring"></div>
+  <div class="abs finger" id="finger"></div>
+</div></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+if (new URLSearchParams(location.search).get("ohne")) document.body.classList.add("ohne");
+
+// Tastatur aufbauen
+const reihen = ["qwertzuiopü", "asdfghjklöä", "⇧yxcvbnm⌫"];
+$("tasten").innerHTML = reihen.map((r) => `<div class="reihe">${[...r].map((k) => `<div class="taste${"⇧⌫".includes(k) ? " breit" : ""}" data-k="${k}">${k}</div>`).join("")}</div>`).join("")
+  + `<div class="reihe"><div class="taste breit">123</div><div class="taste leer">Leerzeichen</div><div class="taste breit">↵</div></div>`;
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const p = (t, a, b) => clamp((t - a) / (b - a));
+const ease = (x) => 1 - Math.pow(1 - x, 3);
+const inout = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const zeig = (el, an) => { el.style.visibility = an ? "visible" : "hidden"; el.style.display = an ? "" : "none"; };
+const lerp = (a, b, x) => a + (b - a) * x;
+
+// Zeitplan in Sekunden
+const DAUER = 21;
+const SCHRITTE = [
+  { von: 2.6, bis: 6.2, nr: "Schritt 1 von 5", titel: "Kurzes Video mit Fachbegriff aufnehmen" },
+  { von: 6.2, bis: 8.6, nr: "Schritt 2 von 5", titel: "In der Schnitt-App öffnen, „Text“ tippen" },
+  { von: 8.6, bis: 11.6, nr: "Schritt 3 von 5", titel: "„Automatische Untertitel“ wählen" },
+  { von: 11.6, bis: 13.8, nr: "Schritt 4 von 5", titel: "Untertitel prüfen: hier stimmt was nicht" },
+  { von: 13.8, bis: 18.6, nr: "Schritt 5 von 5", titel: "Antippen und das Wort korrigieren" },
+];
+const SATZ = "„Das Impressum gehört in die Bio.“";
+
+// Finger-Wege (Koordinaten im Bildschirm, 468 × 948)
+const TAPS = [
+  { t: 7.6, x: 234, y: 870 },   // Text
+  { t: 9.6, x: 234, y: 740 },   // Automatische Untertitel
+  { t: 13.9, x: 234, y: 590 },  // Untertitel antippen
+  { t: 17.7, x: 422, y: 64 + 0 }, // Häkchen (wird unten an Feldposition angepasst)
+];
+
+function finger(t) {
+  // Positionen vor/nach den Taps interpolieren; sichtbar 0,8 s vor bis 0,4 s nach jedem Tap
+  let sichtbar = false, x = 0, y = 0, druck = 0;
+  for (const tp of TAPS) {
+    const a = tp.t - 0.8, b = tp.t + 0.4;
+    if (t >= a && t <= b) {
+      sichtbar = true;
+      const k = ease(p(t, a, tp.t - 0.15));
+      x = lerp(tp.x + 120, tp.x, k); y = lerp(tp.y + 160, tp.y, k);
+      druck = t >= tp.t - 0.08 && t <= tp.t + 0.1 ? 1 : 0;
+      const r = p(t, tp.t, tp.t + 0.4);
+      const ring = $("ring");
+      zeig(ring, r > 0 && r < 1);
+      ring.style.left = tp.x + "px"; ring.style.top = tp.y + "px";
+      ring.style.transform = `scale(${1 + r * 1.2})`; ring.style.opacity = 1 - r;
+      const f = $("finger");
+      f.style.opacity = Math.min(p(t, a, a + 0.2), 1 - p(t, b - 0.2, b));
+    }
+  }
+  if (!sichtbar) zeig($("ring"), false);
+  const f = $("finger");
+  zeig(f, sichtbar);
+  f.style.left = x + "px"; f.style.top = y + "px";
+  f.style.transform = `scale(${druck ? 0.85 : 1})`;
+}
+
+// Wort-Korrektur: "Impression" → "Impress" (3× löschen) → "Impressum"
+function feldText(t) {
+  const basis = "Das Impression";
+  const rest = " gehört in die Bio.";
+  const loesch = Math.floor(clamp((t - 15.0) / 0.32, 0, 3));
+  const tipp = Math.floor(clamp((t - 16.2) / 0.38, 0, 2));
+  let wort = basis.slice(0, basis.length - loesch) + "um".slice(0, tipp);
+  const taste = t >= 15.0 && t < 15.0 + 3 * 0.32 ? "⌫" : t >= 16.2 && t < 16.2 + 2 * 0.38 ? "um"[Math.floor((t - 16.2) / 0.38)] : "";
+  const blink = Math.floor(t * 2.5) % 2 === 0 || (t > 14.9 && t < 17.2);
+  return { html: wort + `<span class="cursor" style="opacity:${blink ? 1 : 0}"></span>` + rest, taste, fertig: tipp === 2 };
+}
+
+window.zeige = function (t) {
+  // Hook (0 – 2,6 s)
+  const hook = $("hook");
+  const hIn = ease(p(t, 0.1, 0.7)), hOut = p(t, 2.2, 2.6);
+  zeig(hook, t < 2.6);
+  hook.style.opacity = hIn * (1 - hOut);
+  hook.style.transform = `translateY(${(1 - hIn) * 40 - hOut * 60}px)`;
+  hook.querySelector("em").style.setProperty("--m", ease(p(t, 0.8, 1.4)) * 100 + "%");
+
+  // Handy rein (2,3 – 2,9) und raus (18,6 – 19,1)
+  const handy = $("handy");
+  const rein = ease(p(t, 2.3, 2.9)), raus = inout(p(t, 18.6, 19.2));
+  zeig(handy, t >= 2.3 && t < 19.2);
+  handy.style.transform = `translateY(${(1 - rein) * 900 + raus * 1100}px) scale(.95)`;
+
+  // Schritt-Titel
+  const s = SCHRITTE.find((x) => t >= x.von && t < x.bis);
+  const box = $("schritt");
+  zeig(box, !!s);
+  if (s) {
+    $("snr").textContent = s.nr; $("stitel").textContent = s.titel;
+    const k = ease(p(t, s.von, s.von + 0.35));
+    box.style.opacity = k; box.style.transform = `translateX(${(1 - k) * 40}px)`;
+  }
+
+  // Schluss
+  const schluss = $("schluss");
+  const sIn = ease(p(t, 19.0, 19.6));
+  zeig(schluss, t >= 19.0);
+  schluss.style.opacity = sIn; schluss.style.transform = `translateY(${(1 - sIn) * 40}px)`;
+  schluss.querySelector("em").style.setProperty("--m", ease(p(t, 19.6, 20.2)) * 100 + "%");
+
+  // Ansicht 1: Kamera (bis 6,2 s)
+  const kam = t < 6.2;
+  zeig($("kamera"), kam); zeig($("app"), !kam);
+  if (kam) {
+    const rec = Math.max(0, t - 3.0);
+    $("rectime").textContent = "00:0" + Math.min(9, Math.floor(rec));
+    $("recpunkt").style.opacity = t < 3.0 ? 0.3 : Math.floor(t * 2) % 2 ? 1 : 0.35;
+    $("ausl").style.borderRadius = t >= 3.0 && t < 5.8 ? "14px" : "50%";
+    $("ausl").style.transform = `scale(${t >= 3.0 && t < 5.8 ? 0.6 : 1})`;
+    const worte = SATZ.split(" ");
+    const n = Math.floor(clamp((t - 3.3) / 0.38, 0, worte.length));
+    $("sprechtext").textContent = worte.slice(0, n).join(" ");
+    zeig($("sprech"), n > 0);
+  }
+
+  // Ansicht 2: Schnitt-App
+  if (!kam) {
+    // Werkzeug Text aktiv nach Tap
+    $("wztext").classList.toggle("aktiv", t >= 7.6 && t < 11.6);
+    // Panel fährt hoch nach Tap auf Text, runter nach Tap auf Auto
+    const panel = $("panel");
+    const pIn = ease(p(t, 7.7, 8.1)), pOut = ease(p(t, 9.75, 10.05));
+    zeig(panel, t >= 7.7 && t < 10.05);
+    panel.style.transform = `translateY(${(1 - pIn) * 400 + pOut * 400}px)`;
+    $("optauto").classList.toggle("hl", t >= 9.55);
+    // Laden
+    const lad = $("laden");
+    const lp = p(t, 10.1, 11.5);
+    zeig(lad, t >= 10.05 && t < 11.6);
+    lad.style.opacity = Math.min(p(t, 10.05, 10.25), 1 - p(t, 11.45, 11.6));
+    $("ladebalken").style.width = inout(lp) * 100 + "%";
+    $("prozent").textContent = Math.round(inout(lp) * 100) + " %";
+
+    // Untertitel im Bild
+    const korrigiert = t >= 17.7;
+    const ut = $("ut");
+    zeig(ut, t >= 11.6);
+    const falsch = `<span id="wort" style="background:${t >= 12.4 && !korrigiert ? "rgba(224,52,63,.55)" : "transparent"}">${korrigiert ? "Impressum" : "Impression"}</span>`;
+    ut.innerHTML = `Das ${falsch} gehört in die Bio.`;
+    ut.style.opacity = ease(p(t, 11.6, 11.9));
+    if (korrigiert) {
+      const g = 1 - p(t, 18.0, 18.5);
+      ut.querySelector("#wort").style.background = `rgba(46,160,103,${0.7 * g})`;
+    }
+    // Text-Spur
+    const spur = $("spurtext");
+    zeig(spur, t >= 11.6);
+    spur.style.opacity = ease(p(t, 11.6, 11.9));
+    spur.firstElementChild.textContent = korrigiert ? "Das Impressum" : "Das Impression";
+    // Zeitleiste läuft
+    const lauf = t < 11.6 ? 0 : Math.min(t, 13.6) - 11.6;
+    const versatz = 234 - lauf * 60;
+    $("spurvideo").style.left = versatz + "px"; spur.style.left = versatz + "px";
+
+    // Roter Kreis um das falsche Wort
+    const kreis = $("kreis");
+    zeig(kreis, t >= 12.4 && t < 14.0);
+    kreis.style.opacity = 1 - p(t, 13.7, 14.0);
+    $("kreispfad").style.strokeDashoffset = 1 - ease(p(t, 12.4, 13.1));
+    const w = ut.querySelector("#wort");
+    if (w) {
+      const r = w.getBoundingClientRect(), sr = $("screen").getBoundingClientRect();
+      const sc = handyScale();
+      kreis.style.left = (r.left - sr.left) / sc - 34 + "px";
+      kreis.style.top = (r.top - sr.top) / sc - 22 + "px";
+      kreis.style.width = r.width / sc + 68 + "px";
+      kreis.style.height = r.height / sc + 44 + "px";
+    }
+
+    // Bearbeiten mit Tastatur
+    const ed = $("edit");
+    const eIn = ease(p(t, 14.1, 14.45)), eOut = ease(p(t, 17.8, 18.15));
+    zeig(ed, t >= 14.1 && t < 18.15);
+    ed.style.transform = `translateY(${(1 - eIn) * 470 + eOut * 470}px)`;
+    const f = feldText(t);
+    $("feldtext").innerHTML = f.html;
+    document.querySelectorAll(".taste").forEach((el) => el.classList.toggle("an", f.taste && el.dataset.k === f.taste));
+    // Häkchen-Tap auf den OK-Knopf
+    const ok = $("okknopf").getBoundingClientRect(), sr = $("screen").getBoundingClientRect(), sc = handyScale();
+    if (t >= 14.45 && t < 17.8) { TAPS[3].x = (ok.left - sr.left + ok.width / 2) / sc; TAPS[3].y = (ok.top - sr.top + ok.height / 2) / sc; }
+
+    // „korrigiert“-Badge
+    const hk = $("haken");
+    const bIn = ease(p(t, 17.9, 18.2));
+    zeig(hk, t >= 17.9);
+    hk.style.opacity = bIn; hk.style.transform = `translateY(${(1 - bIn) * 20}px)`;
+  }
+
+  finger(t);
+};
+function handyScale() { return 0.95; } // Handy ist auf 95 % verkleinert
+window.DAUER = DAUER;
+window.zeige(new URLSearchParams(location.search).get("t") ? +new URLSearchParams(location.search).get("t") : 14);
+</script>
+</body>
+</html>
