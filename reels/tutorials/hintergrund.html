@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="de-AT"><head><meta charset="utf-8"><title>Hintergrund</title>
+<!-- Ruhiger Hintergrund zum Drübersprechen (1080 × 1920, 20 s). Mitte und unten bleiben frei für Untertitel. -->
+<style>
+@font-face{font-family:"Inter";font-weight:600;src:url("../../src/fonts/inter-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:400;src:url("../../src/fonts/inter-latin-400-normal.woff2") format("woff2")}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#F5F6F8;font-family:Inter,sans-serif}
+.blob{position:absolute;border-radius:50%;filter:blur(90px)}
+#a{width:760px;height:760px;background:#1B2440;opacity:.13}
+#b{width:620px;height:620px;background:#7A1F2B;opacity:.12}
+#c{width:540px;height:540px;background:#1B2440;opacity:.08}
+.kopf{position:absolute;left:108px;right:160px;top:250px;display:flex;justify-content:space-between;font-size:30px;color:#5A6278}
+.kopf b{color:#7A1F2B;font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:28px}
+</style></head><body>
+<div class="blob" id="a"></div><div class="blob" id="b"></div><div class="blob" id="c"></div>
+<div class="kopf"><b>Adventskalender · 24.12.</b><span>@die.contentjuristin</span></div>
+<script>
+const T=20, w=2*Math.PI/T;
+window.DAUER=T;
+window.zeige=(t)=>{
+  const s=(el,x,y)=>{document.getElementById(el).style.transform=`translate(${x}px,${y}px)`};
+  s("a",-180+120*Math.sin(w*t),200+90*Math.cos(w*t));
+  s("b",520+110*Math.cos(w*t),980+120*Math.sin(w*t));
+  s("c",80+90*Math.sin(w*t+2),1300+80*Math.cos(w*t+1));
+};
+window.zeige(0);
+</script></body></html>
